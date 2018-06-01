@@ -4,15 +4,15 @@ namespace NCoreUtils.Logging.Google
 
 open System
 open System.Runtime.CompilerServices
+open System.Runtime.ExceptionServices
+open System.Threading
 open Google.Cloud.Logging.Type
 open Google.Cloud.Logging.V2
 open Google.Protobuf.WellKnownTypes
 open Microsoft.Extensions.Logging
 open NCoreUtils
-open System.Threading
-open Newtonsoft.Json
-open System.Runtime.ExceptionServices
 open NCoreUtils.Logging
+open Newtonsoft.Json
 
 [<Sealed>]
 type private JsonDateTimeOffsetConverter () =
@@ -76,7 +76,8 @@ module JsonPayload =
     obj
 
   type AspNetCoreContext with
-    member inline internal this.ToStruct () =
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+    member internal this.ToStruct () =
       Struct ()
       |> add         "method"             this.Method
       |> add         "url"                this.Url
@@ -84,14 +85,16 @@ module JsonPayload =
       |> addNotNull  "referrer"           this.Referrer
       |> addHasValue "responseStatusCode" this.ResponseStatusCode
       |> add         "remoteIp"           this.RemoteIp
-      |> addNotNull  "userAgent"          this.User
+      |> addNotNull  "user"               this.User
 
-  let inline internal mkServiceContext (name : string) version =
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  let internal mkServiceContext (name : string) version =
     Struct ()
     |> add        "service" name
     |> addNotNull "version" version
 
-  let inline internal mkJsonPayload (eventTime : DateTimeOffset) serviceName serviceVersion message (context : AspNetCoreContext) =
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  let internal mkJsonPayload (eventTime : DateTimeOffset) serviceName serviceVersion message (context : AspNetCoreContext) =
     Struct ()
     |> add "eventTime"      (eventTime.ToString "o")
     |> add "serviceContext" (mkServiceContext serviceName serviceVersion)
