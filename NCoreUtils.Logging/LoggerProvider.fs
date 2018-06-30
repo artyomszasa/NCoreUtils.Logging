@@ -7,12 +7,13 @@ open System.Threading
 
 type private Dummy = class end
 
-type Logger (provider : LoggerProvider, category : string) =
-  /// Scope stack.
+type Logger (provider : LoggerProvider,  category : string) =
+  /// Scopes
   let stack = ref []
   /// Creates new scope.
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-  member __.BeginScope state =
+  [<RequiresExplicitTypeArguments>]
+  member __.BeginScope<'state> (state : 'state) =
     let mutable success = false
     let mutable index = Unchecked.defaultof<_>
     while not success do
@@ -26,7 +27,7 @@ type Logger (provider : LoggerProvider, category : string) =
     provider.PushMessage <| LogMessage<'state> (category, logLevel, eventId, exn, state, formatter)
   interface ILogger with
     member __.IsEnabled _ = true
-    member this.BeginScope state = this.BeginScope state
+    member this.BeginScope<'state> (state : 'state) = this.BeginScope<'state> state
     member this.Log (logLevel, eventId, state : 'state, exn, formatter) =
       this.Log (logLevel, eventId, state, exn, formatter)
 
