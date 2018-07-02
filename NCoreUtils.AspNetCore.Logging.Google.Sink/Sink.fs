@@ -105,6 +105,7 @@ type IGoogleAspNetCoreLoggingConfiguration =
   abstract ProjectId      : string
   abstract ServiceName    : string
   abstract ServiceVersion : string
+  abstract PopulateLabels : timestamp:DateTimeOffset * category:string * logLevel:LogLevel * eventId:EventId * context:AspNetCoreContext * addLabel:Action<string, string> -> unit
 
 [<CLIMutable>]
 type GoogleAspNetCoreLoggingConfiguration = {
@@ -116,6 +117,7 @@ type GoogleAspNetCoreLoggingConfiguration = {
       member this.ProjectId      = this.ProjectId
       member this.ServiceName    = this.ServiceName
       member this.ServiceVersion = this.ServiceVersion
+      member __.PopulateLabels (_, _, _, _, _, _) = ()
 
 type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingConfiguration) =
   static let mapSeverity =
@@ -168,6 +170,7 @@ type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingCo
         LogName     = this.LogName.ToString (),
         Severity    = mapSeverity logLevel,
         Timestamp   = Timestamp.FromDateTimeOffset timestamp)
+    configuration.PopulateLabels (timestamp, categoryName, logLevel, eventId, context, fun key value -> entry.Labels.Add (key, value))
     match jsonPayload with
     | null -> entry.TextPayload <- message
     | _    -> entry.JsonPayload <- jsonPayload

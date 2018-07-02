@@ -4,6 +4,7 @@ open System
 open System.Security.Claims
 open NCoreUtils
 open Microsoft.AspNetCore.Http
+open System.Collections.Immutable
 
 type internal LoggingContext () =
   member val AspNetCoreContext = Unchecked.defaultof<AspNetCoreContext> with get, set
@@ -62,12 +63,14 @@ module PrePopulateLoggingContextMiddleware =
     let userAgent = getUserAgentString request.Headers
     let referrer  = getReferrer request.Headers
     let user      = getUser httpContext
+    let headers   = ImmutableDictionary.CreateRange (StringComparer.OrdinalIgnoreCase, request.Headers)
     { Method             = httpContext.Request.Method
       Url                = uri.AbsoluteUri
       UserAgent          = userAgent
       Referrer           = referrer
       ResponseStatusCode = Nullable.mk httpContext.Response.StatusCode
       RemoteIp           = httpContext.Connection.RemoteIpAddress.ToString ()
+      Headers            = headers
       User               = user }
 
   [<CompiledName("Run")>]

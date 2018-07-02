@@ -1,7 +1,9 @@
 namespace NCoreUtils.Logging
 
 open System
+open System.Collections.Generic
 open Microsoft.Extensions.Logging
+open Microsoft.Extensions.Primitives
 open NCoreUtils.Logging
 
 /// Represents actual ASP.NET Core context.
@@ -20,6 +22,8 @@ type AspNetCoreContext = {
   ResponseStatusCode : Nullable<int>
   /// Remote ip address.
   RemoteIp           : string
+  /// Request headers.
+  Headers            : IReadOnlyDictionary<string, StringValues>
   /// User if present.
   User               : string }
 
