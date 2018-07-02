@@ -51,7 +51,7 @@ module JsonPayload =
 
   [<AbstractClass; Sealed>]
   type ToValue =
-    static member inline ToValue (_ : ToValue, string : string) = Value.ForString string
+    static member inline ToValue (_ : ToValue, string : string) = Value.ForString (string |?? String.Empty)
     static member inline ToValue (_ : ToValue, num : int) = Value.ForNumber (float num)
     static member inline ToValue (_ : ToValue, s : Struct) = Value.ForStruct s
 
@@ -146,18 +146,23 @@ type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingCo
       Interlocked.CompareExchange (&logName, currentLogName, null) |> ignore
     currentLogName
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-  member internal this.CreateLogEntry (timestamp : DateTimeOffset, categoryName, logLevel, eventId : EventId, state : 'state, exn : exn, formatter : Func<_, exn, string>, context : AspNetCoreContext) =
+  member internal this.CreateLogEntry (timestamp : DateTimeOffset, categoryName : string, logLevel, eventId : EventId, state : 'state, exn : exn, formatter : Func<_, exn, string>, context : AspNetCoreContext) =
     let message =
-      let optional =
-        match exn with
-        | null -> ""
-        | _    -> sprintf "\n%A" exn
-      sprintf "[%d] [%s] %s%s" eventId.Id categoryName (formatter.Invoke (state, exn)) optional
+      let stringBuilder =
+        System.Text.StringBuilder()
+          .Append('[')
+          .Append(eventId.Id)
+          .Append("] [")
+          .Append(categoryName)
+          .Append(' ')
+          .Append(formatter.Invoke (state, exn))
+      if not (isNull exn) then
+        stringBuilder.AppendLine().Append exn |> ignore
+      stringBuilder.ToString ()
     let jsonPayload =
-      match struct (exn, box context) with
-      | struct (null, _)
-      | struct (_, null) -> null
-      | _ -> mkJsonPayload timestamp configuration.ServiceName configuration.ServiceVersion message context
+      match isNull exn || isNull (box context) with
+      | true -> null
+      | _    -> mkJsonPayload timestamp configuration.ServiceName configuration.ServiceVersion message context
     let entry =
       LogEntry (
         LogName     = this.LogName.ToString (),

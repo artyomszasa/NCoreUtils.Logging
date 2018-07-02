@@ -86,6 +86,7 @@ and LoggerProvider (sink : ISink) =
     match sink with
     | :? IBulkSink as bulkSink -> MailboxProcessor.Start (watchCancellation (bulkLoop bulkSink), cancellation.Token)
     | _                        -> MailboxProcessor.Start (watchCancellation (loop sink),         cancellation.Token)
+  let agentErrorSubscription = agent.Error.Subscribe (fun e -> eprintfn "[%s] %A" (DateTimeOffset.Now.ToString("u")) e)
   /// Underlying message sink.
   member internal __.Sink with [<MethodImpl(MethodImplOptions.AggressiveInlining)>] get () = sink
   /// Passes log message to the background thread.
@@ -100,9 +101,10 @@ and LoggerProvider (sink : ISink) =
   member __.Dispose () =
     if 0 = Interlocked.CompareExchange (&isDisposed, 1, 0) then
       cancellation.Cancel ()
-      if not (isFinished.Wait 150) then
+      if not (isFinished.Wait 200) then
         eprintfn "Logger provider cancellation failed."
       sink.Dispose ()
+      agentErrorSubscription.Dispose ()
       cancellation.Dispose ()
       isFinished.Dispose ()
   interface IDisposable with

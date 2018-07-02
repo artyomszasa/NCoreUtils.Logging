@@ -3,10 +3,21 @@ namespace NCoreUtils.Logging
 open NCoreUtils
 open NCoreUtils.Logging
 open Microsoft.AspNetCore.Http
+open System
+open System.Linq.Expressions
 open System.Threading
 
 [<AutoOpen>]
 module private Helpers =
+
+  let passString =
+    let stringArg = Expression.Parameter typeof<string>
+    let exnArg    = Expression.Parameter typeof<exn>
+    let expr      =
+      Expression.Lambda<Func<string, exn, string>> (
+        stringArg,
+        [| stringArg; exnArg |])
+    expr.Compile ()
 
   [<RequiresExplicitTypeArguments>]
   let inline tryGetServiceSafe<'a> sp =
@@ -31,7 +42,10 @@ type AspNetCoreLogger (provider : LoggerProvider, category, httpContextAccessor 
             PrePopulateLoggingContextMiddleware.populateContext httpContext
           finally
             if lockTaken then Monitor.Exit httpContext
-    provider.PushMessage <| AspNetCoreLogMessage<'state> (category, logLevel, eventId, exn, state, formatter, context)
+    // State may contain non-threadsafe references (e.g. Microsoft.AspNetCore.Hosting.Internal.HostingRequestStartingLog -> HttpContext)
+    // thus formatter should be executed before passing to the delivery thread
+    let newState = formatter.Invoke (state, exn)
+    provider.PushMessage <| AspNetCoreLogMessage (category, logLevel, eventId, exn, newState, passString, context)
 
 type AspNetCoreLoggerProvider (sink, httpContextAccessor) =
   inherit LoggerProvider (sink)
