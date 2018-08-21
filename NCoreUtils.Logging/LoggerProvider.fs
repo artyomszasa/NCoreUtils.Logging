@@ -43,8 +43,7 @@ and LoggerProvider (sink : ISink) =
     match n with
     | 0 -> ()
     | _ ->
-      let! msg0 = inbox.TryReceive (timeout = 0)
-      match msg0 with
+      match! inbox.TryReceive (timeout = 0) with
       | Some msg ->
         enqueue msg
         return! fetchMessages (n - 1) inbox enqueue
@@ -78,9 +77,10 @@ and LoggerProvider (sink : ISink) =
   /// Adds cabcellation watch to the computation.
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   let watchCancellation computation (arg : MailboxProcessor<LogMessage>) = async {
-    use! __ = Async.OnCancel isFinished.Set
-    do! computation arg
-    isFinished.Set () }
+    try
+      use! __ = Async.OnCancel isFinished.Set
+      do! computation arg
+    finally isFinished.Set () }
   /// Background message processing thread.
   let agent =
     match sink with

@@ -30,18 +30,21 @@ type AspNetCoreLogger (provider : LoggerProvider, category, httpContextAccessor 
 
   override __.Log (logLevel, eventId, state : 'state, exn, formatter) =
     let context =
-      match httpContextAccessor.HttpContext with
-      | null -> Unchecked.defaultof<_>
-      | httpContext ->
-        match tryGetServiceSafe<LoggingContext> httpContext.RequestServices with
-        | Some loggingContext -> loggingContext.AspNetCoreContext
-        | _                   ->
-          let mutable lockTaken = Unchecked.defaultof<_>
-          Monitor.Enter (httpContext, &lockTaken)
-          try
-            PrePopulateLoggingContextMiddleware.populateContext httpContext
-          finally
-            if lockTaken then Monitor.Exit httpContext
+      try
+        match httpContextAccessor.HttpContext with
+        | null -> Unchecked.defaultof<_>
+        | httpContext ->
+          match tryGetServiceSafe<LoggingContext> httpContext.RequestServices with
+          | Some loggingContext -> loggingContext.AspNetCoreContext
+          | _                   ->
+            let mutable lockTaken = Unchecked.defaultof<_>
+            Monitor.Enter (httpContext, &lockTaken)
+            try
+              PrePopulateLoggingContextMiddleware.populateContext httpContext
+            finally
+              if lockTaken then Monitor.Exit httpContext
+      with _ ->
+        Unchecked.defaultof<_>
     // State may contain non-threadsafe references (e.g. Microsoft.AspNetCore.Hosting.Internal.HostingRequestStartingLog -> HttpContext)
     // thus formatter should be executed before passing to the delivery thread
     let newState = formatter.Invoke (state, exn)
