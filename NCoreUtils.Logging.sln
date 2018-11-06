@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
@@ -18,6 +18,8 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NCoreUtils.AspNetCore.Logging.Google.Sink", "NCoreUtils.AspNetCore.Logging.Google.Sink\NCoreUtils.AspNetCore.Logging.Google.Sink.fsproj", "{86425296-0621-409F-B4DD-A0F214DD47A4}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NCoreUtils.AspNetCore.Logging.Google", "NCoreUtils.AspNetCore.Logging.Google\NCoreUtils.AspNetCore.Logging.Google.fsproj", "{0447E86F-D822-40D0-BA0B-7F90C8528DDF}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NCoreUtils.AspNetCore.Logging.File.Sink", "NCoreUtils.AspNetCore.Logging.File.Sink\NCoreUtils.AspNetCore.Logging.File.Sink.fsproj", "{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -128,5 +130,17 @@ Global
 		{0447E86F-D822-40D0-BA0B-7F90C8528DDF}.Release|x64.Build.0 = Release|x64
 		{0447E86F-D822-40D0-BA0B-7F90C8528DDF}.Release|x86.ActiveCfg = Release|x86
 		{0447E86F-D822-40D0-BA0B-7F90C8528DDF}.Release|x86.Build.0 = Release|x86
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Debug|x64.Build.0 = Debug|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Debug|x86.Build.0 = Debug|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Release|x64.ActiveCfg = Release|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Release|x64.Build.0 = Release|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Release|x86.ActiveCfg = Release|Any CPU
+		{F2BCC2C5-86C6-4AE8-B0DA-4672804DFE5A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

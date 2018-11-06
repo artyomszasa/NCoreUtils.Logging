@@ -60,16 +60,28 @@ module PrePopulateLoggingContextMiddleware =
           Path = request.Path.Value,
           Query = request.QueryString.ToUriComponent())
       builder.Uri
-    let userAgent = getUserAgentString request.Headers
-    let referrer  = getReferrer request.Headers
-    let user      = getUser httpContext
-    let headers   = ImmutableDictionary.CreateRange (StringComparer.OrdinalIgnoreCase, request.Headers)
-    { Method             = httpContext.Request.Method
+    let userAgent  = getUserAgentString request.Headers
+    let referrer   = getReferrer request.Headers
+    let user       = getUser httpContext
+    let headers    = ImmutableDictionary.CreateRange (StringComparer.OrdinalIgnoreCase, request.Headers)
+    let httpMethod = httpContext.Request.Method
+    let statusCode =
+      match httpContext.Response with
+      | null     -> Nullable.empty
+      | response -> Nullable.mk response.StatusCode
+    let remoteIp =
+      match httpContext.Connection with
+      | null -> "<null>"
+      | connection ->
+        match connection.RemoteIpAddress with
+        | null -> "<null>"
+        | addr -> addr.ToString ()
+    { Method             = httpMethod
       Url                = uri.AbsoluteUri
       UserAgent          = userAgent
       Referrer           = referrer
-      ResponseStatusCode = Nullable.mk httpContext.Response.StatusCode
-      RemoteIp           = httpContext.Connection.RemoteIpAddress.ToString ()
+      ResponseStatusCode = statusCode
+      RemoteIp           = remoteIp
       Headers            = headers
       User               = user }
 
