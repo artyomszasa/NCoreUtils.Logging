@@ -19,12 +19,17 @@ type LoggingBuilderGoogleExtensions =
   [<Extension>]
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   static member AddGoogleSink (builder : ILoggingBuilder, configuration : IConfiguration) =
-    let config = { ProjectId = null; ServiceName = null; ServiceVersion = null }
+    let config = { ProjectId = null; ServiceName = null; ServiceVersion = null; EnvPodName = null; EnvNodeName = null }
     configuration.Bind config
     LoggingBuilderGoogleExtensions.AddGoogleSink (builder, config)
 
   [<Extension>]
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-  static member AddGoogleSink (builder : ILoggingBuilder, projectId, serviceName, serviceVersion) =
-    let config = { ProjectId = projectId; ServiceName = serviceName; ServiceVersion = serviceVersion }
+  static member AddGoogleSink (builder : ILoggingBuilder, projectId, serviceName, serviceVersion, envPodName, envNodeName) =
+    let config = { ProjectId = projectId; ServiceName = serviceName; ServiceVersion = serviceVersion; EnvPodName = envPodName; EnvNodeName = envNodeName }
     LoggingBuilderGoogleExtensions.AddGoogleSink (builder, config)
+
+  [<Extension>]
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  static member AddGoogleSink (builder : ILoggingBuilder, projectId, serviceName, serviceVersion) =
+    LoggingBuilderGoogleExtensions.AddGoogleSink (builder, projectId, serviceName, serviceVersion, null, null)

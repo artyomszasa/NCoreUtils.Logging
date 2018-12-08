@@ -34,12 +34,16 @@ type private GoogleAspNetCoreLoggingExtendedConfiguration (builder : GoogleAspNe
   member val ProjectId      = builder.BasicConfiguration.ProjectId
   member val ServiceName    = builder.BasicConfiguration.ServiceName
   member val ServiceVersion = builder.BasicConfiguration.ServiceVersion
+  member val EnvPodName     = builder.BasicConfiguration.EnvPodName
+  member val EnvNodeName    = builder.BasicConfiguration.EnvNodeName
   member val LabelFactories = builder.LabelSources |> Seq.toList
   with
     interface IGoogleAspNetCoreLoggingConfiguration with
       member this.ProjectId      = this.ProjectId
       member this.ServiceName    = this.ServiceName
       member this.ServiceVersion = this.ServiceVersion
+      member this.EnvPodName     = this.EnvPodName
+      member this.EnvNodeName    = this.EnvNodeName
       member this.PopulateLabels (timestamp, category, logLevel, eventId, context, addLabel) =
         this.LabelFactories
         |> List.iter (fun factory -> factory.Invoke (timestamp, category, logLevel, eventId, context, addLabel))
@@ -59,15 +63,21 @@ type LoggerFactoryGoogleExtensions =
   [<Extension>]
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, configuration : IConfiguration) =
-    let config = { ProjectId = null; ServiceName = null; ServiceVersion = null }
+    let config = { ProjectId = null; ServiceName = null; ServiceVersion = null; EnvPodName = null; EnvNodeName = null }
     configuration.Bind config
     LoggerFactoryGoogleExtensions.AddGoogleSink (factory, httpContextAccessor, config)
 
   [<Extension>]
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
-  static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, projectId, serviceName, serviceVersion) =
-    let config = { ProjectId = projectId; ServiceName = serviceName; ServiceVersion = serviceVersion }
+  static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, projectId, serviceName, serviceVersion, envPodName, envNodeName) =
+    let config = { ProjectId = projectId; ServiceName = serviceName; ServiceVersion = serviceVersion; EnvPodName = envPodName; EnvNodeName = envNodeName }
     LoggerFactoryGoogleExtensions.AddGoogleSink (factory, httpContextAccessor, config)
+
+
+  [<Extension>]
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, projectId, serviceName, serviceVersion) =
+    LoggerFactoryGoogleExtensions.AddGoogleSink (factory, httpContextAccessor, projectId, serviceName, serviceVersion, null, null)
 
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   static member private AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, builder : GoogleAspNetCoreLoggingExtendedConfigurationBuilder, configure : Action<GoogleAspNetCoreLoggingExtendedConfigurationBuilder>) =
@@ -77,15 +87,22 @@ type LoggerFactoryGoogleExtensions =
     LoggerFactoryGoogleExtensions.AddGoogleSink (factory, httpContextAccessor, config)
 
   [<Extension>]
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, configuration : IConfiguration, configure : Action<GoogleAspNetCoreLoggingExtendedConfigurationBuilder>) =
     let builder = GoogleAspNetCoreLoggingExtendedConfigurationBuilder.FromConfiguration configuration
     LoggerFactoryGoogleExtensions.AddGoogleSink (factory, httpContextAccessor, builder, configure)
 
   [<Extension>]
-  static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, projectId, serviceName, serviceVersion, configure : Action<GoogleAspNetCoreLoggingExtendedConfigurationBuilder>) =
-    let config = { ProjectId = projectId; ServiceName = serviceName; ServiceVersion = serviceVersion }
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, projectId, serviceName, serviceVersion, envPodName, envNodeName, configure : Action<GoogleAspNetCoreLoggingExtendedConfigurationBuilder>) =
+    let config = { ProjectId = projectId; ServiceName = serviceName; ServiceVersion = serviceVersion; EnvPodName = envPodName; EnvNodeName = envNodeName }
     let builder = GoogleAspNetCoreLoggingExtendedConfigurationBuilder.FromConfiguration config
     LoggerFactoryGoogleExtensions.AddGoogleSink (factory, httpContextAccessor, builder, configure)
+
+  [<Extension>]
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  static member AddGoogleSink (factory : ILoggerFactory, httpContextAccessor, projectId, serviceName, serviceVersion, configure : Action<GoogleAspNetCoreLoggingExtendedConfigurationBuilder>) =
+    LoggerFactoryGoogleExtensions.AddGoogleSink (factory, httpContextAccessor, projectId, serviceName, serviceVersion, null, null, configure)
 
   [<Extension>]
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]

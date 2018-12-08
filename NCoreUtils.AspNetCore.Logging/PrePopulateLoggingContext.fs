@@ -60,11 +60,16 @@ module PrePopulateLoggingContextMiddleware =
           Path = request.Path.Value,
           Query = request.QueryString.ToUriComponent())
       builder.Uri
-    let userAgent = getUserAgentString request.Headers
-    let referrer  = getReferrer request.Headers
-    let user      = getUser httpContext
-    let headers   = ImmutableDictionary.CreateRange (StringComparer.OrdinalIgnoreCase, request.Headers)
-    { Method             = httpContext.Request.Method
+    let userAgent    = getUserAgentString request.Headers
+    let referrer     = getReferrer request.Headers
+    let user         = getUser httpContext
+    let headers      = { Instance = ImmutableDictionary.CreateRange (StringComparer.OrdinalIgnoreCase, request.Headers) }
+    let connectionId =
+      match httpContext.Connection with
+      | null       -> null
+      | connection -> connection.Id
+    { ConnectionId       = connectionId
+      Method             = httpContext.Request.Method
       Url                = uri.AbsoluteUri
       UserAgent          = userAgent
       Referrer           = referrer

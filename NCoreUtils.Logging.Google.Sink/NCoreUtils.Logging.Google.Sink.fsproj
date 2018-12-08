@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.0.1</Version>
+    <Version>2.0.3-alpha1</Version>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging.Google.Sink</PackageId>
     <Title>$(PackageId)</Title>
@@ -9,6 +9,7 @@
     <Description>Google Cloud Logging sink implementation.</Description>
     <Copyright>Artyom Antyipin</Copyright>
     <RepositoryUrl>https://github.com/artyomszasa/NCoreUtils.Logging.git</RepositoryUrl>
+    <PackageReleaseNotes>Dependency version bump.</PackageReleaseNotes>
     <!-- Assembly Info -->
     <Product>NCoreUtils</Product>
     <AssemblyName>$(PackageId)</AssemblyName>
@@ -18,6 +19,7 @@
     <DebugType>portable</DebugType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>FS2003</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="InternalExtensions.fs" />
@@ -28,6 +30,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Logging.V2" Version="2.2.0" />
-    <PackageReference Include="Grpc.Core" Version="1.14.1" />
+    <PackageReference Include="Grpc.Core" Version="1.15.0" />
   </ItemGroup>
 </Project>

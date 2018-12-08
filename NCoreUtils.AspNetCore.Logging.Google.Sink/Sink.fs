@@ -105,21 +105,31 @@ type IGoogleAspNetCoreLoggingConfiguration =
   abstract ProjectId      : string
   abstract ServiceName    : string
   abstract ServiceVersion : string
+  abstract EnvPodName     : string
+  abstract EnvNodeName    : string
   abstract PopulateLabels : timestamp:DateTimeOffset * category:string * logLevel:LogLevel * eventId:EventId * context:AspNetCoreContext * addLabel:Action<string, string> -> unit
 
 [<CLIMutable>]
 type GoogleAspNetCoreLoggingConfiguration = {
   ProjectId      : string
   ServiceName    : string
-  ServiceVersion : string }
+  ServiceVersion : string
+  EnvPodName     : string
+  EnvNodeName    : string }
   with
     interface IGoogleAspNetCoreLoggingConfiguration with
       member this.ProjectId      = this.ProjectId
       member this.ServiceName    = this.ServiceName
       member this.ServiceVersion = this.ServiceVersion
+      member this.EnvPodName     = this.EnvPodName
+      member this.EnvNodeName    = this.EnvNodeName
       member __.PopulateLabels (_, _, _, _, _, _) = ()
 
 type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingConfiguration) =
+  [<Literal>]
+  static let DefaultEnvPodName  = "KUBERNETES_POD_NAME"
+  [<Literal>]
+  static let DefaultEnvNodeName = "KUBERNETES_NODE_NAME"
   static let mapSeverity =
     let map =
       Map.ofList
@@ -171,6 +181,17 @@ type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingCo
         Severity    = mapSeverity logLevel,
         Timestamp   = Timestamp.FromDateTimeOffset timestamp)
     configuration.PopulateLabels (timestamp, categoryName, logLevel, eventId, context, fun key value -> entry.Labels.Add (key, value))
+    // generate default labels
+    match Environment.GetEnvironmentVariable (configuration.EnvPodName |?? DefaultEnvPodName) with
+    | null     -> ()
+    | podName  -> entry.Labels.Add("k8s-pod", podName)
+    match Environment.GetEnvironmentVariable (configuration.EnvNodeName |?? DefaultEnvNodeName) with
+    | null     -> ()
+    | nodeName -> entry.Labels.Add("k8s-node", nodeName)
+    match context.ConnectionId with
+    | null     -> ()
+    | connId   -> entry.Labels.Add("asp-net-core-connection-id", connId)
+    // create payload
     match jsonPayload with
     | null -> entry.TextPayload <- message
     | _    -> entry.JsonPayload <- jsonPayload
