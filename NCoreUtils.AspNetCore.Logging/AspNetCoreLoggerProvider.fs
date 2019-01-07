@@ -35,7 +35,16 @@ type AspNetCoreLogger (provider : LoggerProvider, category, httpContextAccessor 
         | null -> Unchecked.defaultof<_>
         | httpContext ->
           match tryGetServiceSafe<LoggingContext> httpContext.RequestServices with
-          | Some loggingContext -> loggingContext.AspNetCoreContext
+          | Some loggingContext ->
+            // Current user may have changed during the execution, try update
+            try
+              match httpContext.User with
+              | null -> ()
+              | principal when principal.Identity.IsAuthenticated ->
+                loggingContext.AspNetCoreContext <- { loggingContext.AspNetCoreContext with User = principal.Identity.Name }
+              | _ -> ()
+            with _ -> ()
+            loggingContext.AspNetCoreContext
           | _                   ->
             let mutable lockTaken = Unchecked.defaultof<_>
             Monitor.Enter (httpContext, &lockTaken)
