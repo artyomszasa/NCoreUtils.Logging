@@ -14,9 +14,7 @@ module private Helpers =
     let stringArg = Expression.Parameter typeof<string>
     let exnArg    = Expression.Parameter typeof<exn>
     let expr      =
-      Expression.Lambda<Func<string, exn, string>> (
-        stringArg,
-        [| stringArg; exnArg |])
+      Expression.Lambda<Func<string, exn, string>> (stringArg, [| stringArg; exnArg |])
     expr.Compile ()
 
   [<RequiresExplicitTypeArguments>]
