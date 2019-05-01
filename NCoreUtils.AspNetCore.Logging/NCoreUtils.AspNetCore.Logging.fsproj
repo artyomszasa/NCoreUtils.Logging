@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.0.3-alpha3</Version>
+    <Version>2.1.0-alpha1</Version>
     <!-- NuGet -->
     <PackageId>NCoreUtils.AspNetCore.Logging</PackageId>
     <Title>$(PackageId)</Title>
@@ -9,7 +9,7 @@
     <Description>Sink based logging provider implementation for ASP.NET Core.</Description>
     <Copyright>Artyom Antyipin</Copyright>
     <RepositoryUrl>https://github.com/artyomszasa/NCoreUtils.Logging.git</RepositoryUrl>
-    <PackageReleaseNotes>Version bump to .net core 2.2.</PackageReleaseNotes>
+    <PackageReleaseNotes>Target F# 4.6.</PackageReleaseNotes>
     <!-- Assembly Info -->
     <Product>NCoreUtils</Product>
     <AssemblyName>$(PackageId)</AssemblyName>
@@ -37,7 +37,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
-    <PackageReference Include="NCoreUtils.FSharp.AspNetCore" Version="2.0.3-alpha0" />
+    <PackageReference Include="NCoreUtils.FSharp.AspNetCore" Version="2.1.0-alpha0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
   </ItemGroup>
 </Project>

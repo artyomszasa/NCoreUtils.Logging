@@ -68,13 +68,20 @@ module PrePopulateLoggingContextMiddleware =
       match httpContext.Connection with
       | null       -> null
       | connection -> connection.Id
+    let remoteIpAddress =
+      match httpContext.Connection with
+      | null       -> "<none>"
+      | connection ->
+      match connection.RemoteIpAddress with
+      | null            -> "<none>"
+      | remoteIpAddress -> remoteIpAddress.ToString ()
     { ConnectionId       = connectionId
       Method             = httpContext.Request.Method
       Url                = uri.AbsoluteUri
       UserAgent          = userAgent
       Referrer           = referrer
       ResponseStatusCode = Nullable.mk httpContext.Response.StatusCode
-      RemoteIp           = httpContext.Connection.RemoteIpAddress.ToString ()
+      RemoteIp           = remoteIpAddress
       Headers            = headers
       User               = user }
 

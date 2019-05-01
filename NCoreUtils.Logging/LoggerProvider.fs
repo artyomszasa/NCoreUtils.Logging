@@ -4,8 +4,57 @@ open Microsoft.Extensions.Logging
 open System
 open System.Runtime.CompilerServices
 open System.Threading
+open System.Collections.Generic
 
 type private Dummy = class end
+
+[<AutoOpen>]
+module private BulkLoopHelpers =
+  let printErr =
+    fun (exn : exn) ->
+      eprintf "Failed to dispatch one or more log messages: %A" exn
+      async.Zero ()
+
+type private BulkLoop =
+  val private sink : IBulkSink
+  val private input : MailboxProcessor<LogMessage>
+  val private isDisposed : unit -> bool
+  val private dispatchMessages : IReadOnlyList<LogMessage> -> Async<unit>
+  new (sink : IBulkSink, input, isDisposed) =
+    let dispatchMessages (messages : IReadOnlyList<LogMessage>) =
+      let queue = sink.CreateQueue ()
+      messages |> Seq.iter (fun msg -> msg.Enqueue queue)
+      match isDisposed () with
+      | true -> async.Zero ()
+      | _    -> async.TryWith (queue.AsyncFlush (), printErr)
+    { sink             = sink
+      input            = input
+      isDisposed       = isDisposed
+      dispatchMessages = dispatchMessages }
+  member this.Execute (max : int, messages : List<_>) =
+    match max - messages.Count with
+    | 0 -> async.Return (messages :> IReadOnlyList<_>)
+    | _ ->
+      let inline tryReceive (_ : int) = this.input.TryReceive (timeout = 0)
+      let inline handleOne (maybeMessage : LogMessage option) =
+        match maybeMessage with
+        | Some message ->
+          messages.Add message
+          this.Execute (max, messages)
+        | _ -> this.Execute (messages.Count, messages)
+      async.Bind (tryReceive Unchecked.defaultof<_>, handleOne)
+  member this.Run (_ : int) =
+    let inline receive (_ : int) =
+      this.input.Receive ()
+    let inline execute (message : LogMessage) =
+      let messages = ResizeArray<_> 40
+      messages.Add message
+      async.Bind (this.Execute (40, messages), this.dispatchMessages)
+    async.Bind (receive Unchecked.defaultof<_>, execute)
+  member this.Loop (_ : int) =
+    let inline loop () = this.Loop Unchecked.defaultof<_>
+    async.Bind (this.Run Unchecked.defaultof<_>, loop)
+
 
 type Logger (provider : LoggerProvider,  category : string) =
   /// Scopes
@@ -59,20 +108,16 @@ and LoggerProvider (sink : ISink) =
   /// Cancellation passed to the agent.
   let cancellation = new CancellationTokenSource ()
   /// Inner loop when sink is capable of bulk operations.
-  let rec bulkLoop (bulkSink : IBulkSink) (inbox : MailboxProcessor<_>) = async {
-    let! (msg : LogMessage) = inbox.Receive ()
-    do! async {
-      use queue = bulkSink.CreateQueue ()
-      msg.Enqueue queue
-      do! fetchMessages 39 inbox (fun msg -> msg.Enqueue queue)
-      if 0 = isDisposed then
-        do! queue.AsyncFlush () }
-    do! bulkLoop bulkSink inbox }
+  let rec bulkLoop (bulkSink : IBulkSink) (inbox : MailboxProcessor<_>) = // async {
+    let loop = new BulkLoop (bulkSink, inbox, fun () -> 0 <> isDisposed)
+    loop.Loop Unchecked.defaultof<_>
   /// Inner loop when sink is uncapable of bulk operations.
   let rec loop (sink : ISink) (inbox : MailboxProcessor<_>) = async {
     let! (msg : LogMessage) = inbox.Receive ()
-    if 0 = isDisposed then
-      do! msg.AsyncLog sink
+    try
+      if 0 = isDisposed then
+        do! msg.AsyncLog sink
+    with exn -> eprintfn "Failed to dispatch log message: %A" exn
     do! loop sink inbox }
   /// Adds cabcellation watch to the computation.
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]

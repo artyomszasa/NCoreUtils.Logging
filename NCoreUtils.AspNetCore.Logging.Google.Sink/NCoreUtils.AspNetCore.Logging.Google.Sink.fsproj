@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.0.3-alpha3</Version>
+    <Version>2.1.0-alpha0</Version>
     <!-- NuGet -->
     <PackageId>NCoreUtils.AspNetCore.Logging.Google.Sink</PackageId>
     <Title>$(PackageId)</Title>
@@ -9,7 +9,7 @@
     <Description>Google Cloud logging sink for sink based ASP.NET Core specific logging.</Description>
     <Copyright>Artyom Antyipin</Copyright>
     <RepositoryUrl>https://github.com/artyomszasa/NCoreUtils.Logging.git</RepositoryUrl>
-    <PackageReleaseNotes>Version bump to .net core 2.2.</PackageReleaseNotes>
+    <PackageReleaseNotes>Target F# 4.6.</PackageReleaseNotes>
     <!-- Assembly Info -->
     <Product>NCoreUtils</Product>
     <AssemblyName>$(PackageId)</AssemblyName>
@@ -30,6 +30,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Logging.V2" Version="2.2.0" />
-    <PackageReference Include="Grpc.Core" Version="1.15.0" />
+    <PackageReference Include="Grpc.Core" Version="1.20.0" />
   </ItemGroup>
 </Project>
