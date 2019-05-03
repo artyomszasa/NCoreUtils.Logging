@@ -22,6 +22,7 @@
     <NoWarn>FS2003</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="LoggerScope.fs" />
     <Compile Include="LoggerProvider.fs" />
   </ItemGroup>

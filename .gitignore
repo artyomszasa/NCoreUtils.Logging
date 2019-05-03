@@ -2,3 +2,5 @@
 .vs
 NCoreUtils*/bin
 NCoreUtils*/obj
+NCoreUtils.Logging.Unit/report
+NCoreUtils.Logging.Unit/coverage.opencover.xml

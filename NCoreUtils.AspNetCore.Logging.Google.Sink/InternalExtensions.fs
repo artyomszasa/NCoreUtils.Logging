@@ -1,4 +1,4 @@
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging.Google
 
 open Google.Cloud.Logging.V2
 open NCoreUtils

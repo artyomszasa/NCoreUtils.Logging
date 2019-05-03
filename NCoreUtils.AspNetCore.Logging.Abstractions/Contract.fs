@@ -2,6 +2,7 @@ namespace NCoreUtils.Logging
 
 open System
 open System.Collections.Generic
+open System.Diagnostics.CodeAnalysis
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open Microsoft.Extensions.Logging
@@ -12,6 +13,7 @@ type private EmptyEnumerator<'T> () =
   interface System.Collections.IEnumerator with
     member __.Current = null
     member __.MoveNext () = false
+    [<ExcludeFromCodeCoverage>]
     member __.Reset () = ()
   interface IEnumerator<'T> with
     member __.Current = Unchecked.defaultof<'T>
@@ -96,6 +98,21 @@ type AspNetCoreContext = {
   Headers            : ReadOnlyDictionaryWrapper<string, StringValues>
   /// User if present.
   User               : string }
+
+[<RequireQualifiedAccess>]
+module AspNetCoreContext =
+
+  [<CompiledName("Empty")>]
+  let empty =
+    { ConnectionId       = String.Empty
+      Method             = String.Empty
+      Url                = String.Empty
+      UserAgent          = String.Empty
+      Referrer           = String.Empty
+      ResponseStatusCode = Nullable ()
+      RemoteIp           = String.Empty
+      Headers            = { Instance = null }
+      User               = String.Empty }
 
 /// Defines functionality to log messages with ASP.NET Core context.
 type IAspNetCoreSink =

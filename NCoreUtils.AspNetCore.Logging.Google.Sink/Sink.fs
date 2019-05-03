@@ -3,6 +3,7 @@ namespace NCoreUtils.Logging.Google
 #nowarn "64"
 
 open System
+open System.Diagnostics.CodeAnalysis
 open System.Runtime.CompilerServices
 open System.Runtime.ExceptionServices
 open System.Threading
@@ -12,39 +13,6 @@ open Google.Protobuf.WellKnownTypes
 open Microsoft.Extensions.Logging
 open NCoreUtils
 open NCoreUtils.Logging
-open Newtonsoft.Json
-
-[<Sealed>]
-type private JsonDateTimeOffsetConverter () =
-  inherit JsonConverter ()
-  override __.CanRead = false
-  override __.CanConvert ``type`` = ``type`` = typeof<DateTimeOffset>
-  override __.WriteJson (writer, value, _) =
-    match value with
-    | null -> writer.WriteNull ()
-    | :? DateTimeOffset as v -> v.ToString("o") |> writer.WriteValue
-    | _ -> invalidOpf "should never happen"
-  override __.ReadJson (_, _, _, _) = notImplemented "Should never be called."
-
-
-// [<CLIMutable>]
-// type JsonPayloadServiceContext = {
-//   [<JsonProperty("service", Required = Required.Always)>]
-//   Service : string
-//   [<JsonProperty("version", Required = Required.DisallowNull)>]
-//   Version : string }
-//
-// [<CLIMutable>]
-// type JsonPayload = {
-//   [<JsonProperty("eventTime", Required = Required.Always)>]
-//   [<JsonConverter(typeof<JsonDateTimeOffsetConverter>)>]
-//   EventTime      : DateTimeOffset
-//   [<JsonProperty("serviceContext", Required = Required.Always)>]
-//   ServiceContext : JsonPayloadServiceContext
-//   [<JsonProperty("message", Required = Required.Always)>]
-//   Message        : string
-//   [<JsonProperty("context", Required = Required.DisallowNull)>]
-//   Context        : JsonPayloadContext }
 
 [<AutoOpen>]
 module JsonPayload =
@@ -55,20 +23,24 @@ module JsonPayload =
     static member inline ToValue (_ : ToValue, num : int) = Value.ForNumber (float num)
     static member inline ToValue (_ : ToValue, s : Struct) = Value.ForStruct s
 
+  [<ExcludeFromCodeCoverage>]
   let inline private toValue (value : ^a) : Value
     when ^x :> ToValue
     and  (^a or ^x) : (static member ToValue : ^x * ^a -> Value)
     = ((^a or ^x) : (static member ToValue : ^x * ^a -> Value) (Unchecked.defaultof<ToValue>, value))
 
+  [<ExcludeFromCodeCoverage>]
   let inline private add key value (obj : Struct) =
     obj.Fields.Add (key, toValue value)
     obj
 
+  [<ExcludeFromCodeCoverage>]
   let inline private addNotNull key value (obj : Struct) =
     if not (String.IsNullOrEmpty value) then
       obj.Fields.Add (key, toValue value)
     obj
 
+  [<ExcludeFromCodeCoverage>]
   let inline private addHasValue key (value : Nullable<_>) (obj : Struct) =
     match value.HasValue with
     | true -> obj.Fields.Add (key, toValue value.Value)
@@ -110,6 +82,7 @@ type IGoogleAspNetCoreLoggingConfiguration =
   abstract PopulateLabels : timestamp:DateTimeOffset * category:string * logLevel:LogLevel * eventId:EventId * context:AspNetCoreContext * addLabel:Action<string, string> -> unit
 
 [<CLIMutable>]
+[<NoEquality; NoComparison>]
 type GoogleAspNetCoreLoggingConfiguration = {
   ProjectId      : string
   ServiceName    : string
@@ -125,28 +98,48 @@ type GoogleAspNetCoreLoggingConfiguration = {
       member this.EnvNodeName    = this.EnvNodeName
       member __.PopulateLabels (_, _, _, _, _, _) = ()
 
-type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingConfiguration) =
+// GOOGLE SINK ---------------------------------------------------------------------------------------------------------
+
+type [<Sealed>] GoogleAspNetCoreSink internal (configuration : IGoogleAspNetCoreLoggingConfiguration, factory : unit -> LoggingServiceV2Client) =
+
   [<Literal>]
   static let DefaultEnvPodName  = "KUBERNETES_POD_NAME"
+
   [<Literal>]
   static let DefaultEnvNodeName = "KUBERNETES_NODE_NAME"
-  static let mapSeverity =
-    let map =
-      Map.ofList
-        [ LogLevel.Trace,       LogSeverity.Debug
-          LogLevel.Debug,       LogSeverity.Debug
-          LogLevel.Information, LogSeverity.Info
-          LogLevel.Warning,     LogSeverity.Warning
-          LogLevel.Error,       LogSeverity.Error
-          LogLevel.Critical,    LogSeverity.Critical ]
-    fun logLevel -> Map.tryFind logLevel map |? LogSeverity.Default
-  static let (|RcpException|_|) = tryGetExn<Grpc.Core.RpcException>
+
+  static let severityMap =
+    [|
+      LogSeverity.Debug
+      LogSeverity.Debug
+      LogSeverity.Info
+      LogSeverity.Warning
+      LogSeverity.Error
+      LogSeverity.Critical
+    |]
+
   static let resource = Google.Api.MonitoredResource (Type = "global")
-  let client = LoggingServiceV2Client.Create()
+
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  static let mapSeverity logLevel =
+    let l = int logLevel
+    match l >= 0 && l <= 5 with
+    | true -> severityMap.[l]
+    | _    -> LogSeverity.Default
+
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  static let (|RcpException|_|) = tryGetExn<Grpc.Core.RpcException>
+
+
+  let client = factory ()
   [<VolatileField>]
   let mutable logName = null
+
+  new (configuration) = new GoogleAspNetCoreSink (configuration, fun () -> LoggingServiceV2Client.Create ())
+
   // let mutable serviceContext = { Service = configuration.ServiceName; Version = configuration.ServiceVersion }
   member internal __.GoogleConfiguration = configuration
+
   member internal __.LogName =
     let mutable currentLogName = logName
     if isNull currentLogName then
@@ -157,6 +150,7 @@ type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingCo
       currentLogName <- LogName (configuration.ProjectId, serviceName) |> LogNameOneof.From
       Interlocked.CompareExchange (&logName, currentLogName, null) |> ignore
     currentLogName
+
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   member internal this.CreateLogEntry (timestamp : DateTimeOffset, categoryName : string, logLevel, eventId : EventId, state : 'state, exn : exn, formatter : Func<_, exn, string>, context : AspNetCoreContext) =
     let message =
@@ -196,6 +190,7 @@ type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingCo
     | null -> entry.TextPayload <- message
     | _    -> entry.JsonPayload <- jsonPayload
     entry
+
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   member internal this.AsyncSend (logEntries : LogEntry[]) = async {
     try
@@ -203,43 +198,60 @@ type [<Sealed>] GoogleAspNetCoreSink (configuration : IGoogleAspNetCoreLoggingCo
     with
       | RcpException rcpExn -> eprintfn "Google cloud logging error: %A" rcpExn.Status
       | exn                 -> ExceptionDispatchInfo.Capture(exn).Throw () }
+
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   member this.AsyncLog (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context) =
     this.CreateLogEntry (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context)
     |> Array.singleton
     |> this.AsyncSend
+
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   member this.CreateQueue () = new GoogleSinkQueue (this)
+
   interface IDisposable with
     member __.Dispose () = ()
+
   interface ISink with
     member this.AsyncLog (timestamp, categoryName, logLevel, eventId, state, exn, formatter) =
       this.AsyncLog (timestamp, categoryName, logLevel, eventId, state, exn, formatter, Unchecked.defaultof<_>)
+
   interface IAspNetCoreSink with
     member this.AsyncLog (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context) =
       this.AsyncLog (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context)
+
   interface IBulkSink with
     member this.CreateQueue () = this.CreateQueue () :> _
 
-and GoogleSinkQueue (sink : GoogleAspNetCoreSink) =
+// GOOGLE SINK QUEUE ---------------------------------------------------------------------------------------------------
+
+and [<Sealed>] GoogleSinkQueue (sink : GoogleAspNetCoreSink) =
   let entries = ResizeArray ()
+
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   member private __.AsyncFlush () =
     let toSend = entries.ToArray ()
     entries.Clear ()
     sink.AsyncSend toSend
+
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   member this.Dispose () =
     if 0 <> entries.Count then
       this.AsyncFlush ()
       |> Async.Start
+
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   member __.Enqueue (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context) =
     entries.Add <| sink.CreateLogEntry (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context)
+
   interface IAspNetCoreSinkQueue with
     member this.Enqueue (timestamp, categoryName, logLevel, eventId, state, exn, formatter) =
       this.Enqueue (timestamp, categoryName, logLevel, eventId, state, exn, formatter, Unchecked.defaultof<_>)
+
     member this.Enqueue (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context) =
       this.Enqueue (timestamp, categoryName, logLevel, eventId, state, exn, formatter, context)
-    member this.AsyncFlush () = this.AsyncFlush ()
-    member this.Dispose () = this.Dispose ()
+
+    member this.AsyncFlush () =
+      this.AsyncFlush ()
+
+    member this.Dispose () =
+      this.Dispose ()

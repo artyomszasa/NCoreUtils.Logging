@@ -1,10 +1,11 @@
 namespace NCoreUtils.Logging
 
 open System
+open System.Collections.Immutable
+open System.Diagnostics.CodeAnalysis
 open System.Security.Claims
 open NCoreUtils
 open Microsoft.AspNetCore.Http
-open System.Collections.Immutable
 
 type internal LoggingContext () =
   member val AspNetCoreContext = Unchecked.defaultof<AspNetCoreContext> with get, set
@@ -12,11 +13,13 @@ type internal LoggingContext () =
 [<RequireQualifiedAccess>]
 module PrePopulateLoggingContextMiddleware =
 
+  [<ExcludeFromCodeCoverage>]
   let inline private getEffectiveHost (host : HostString) =
     match host.HasValue with
     | true -> host.Host
     | _    -> "localhost"
 
+  [<ExcludeFromCodeCoverage>]
   let inline private getEffectivePort (request : HttpRequest) =
     match request.Host.HasValue && request.Host.Port.HasValue with
     | true ->
@@ -26,27 +29,25 @@ module PrePopulateLoggingContextMiddleware =
       | _    -> port
     | _ -> -1
 
+  [<ExcludeFromCodeCoverage>]
   let inline private getUserAgentString (headers : IHeaderDictionary) =
     let mutable values = Unchecked.defaultof<_>
     match headers.TryGetValue ("User-Agent", &values) with
     | true when 0 < values.Count -> values.[0]
     | _                          -> "unknown"
 
+  [<ExcludeFromCodeCoverage>]
   let inline private getReferrer (headers : IHeaderDictionary) =
     let mutable values = Unchecked.defaultof<_>
     match headers.TryGetValue ("Referer", &values) with
     | true when 0 < values.Count -> values.[0]
     | _ -> null
 
-  let inline private claimValue (claim : Claim) =
-    match claim with
-    | null  -> null
-    | _     -> claim.Value
-
+  [<ExcludeFromCodeCoverage>]
   let inline private getUser (httpContext : HttpContext) =
     match httpContext.User with
     | null -> null
-    | user -> user.FindFirst ClaimTypes.Name |> claimValue
+    | user -> user.Identity.Name
 
   [<CompiledName("PopulateContext")>]
   let internal populateContext (httpContext : HttpContext) =
@@ -57,8 +58,8 @@ module PrePopulateLoggingContextMiddleware =
           Scheme = request.Scheme,
           Host = getEffectiveHost request.Host,
           Port = getEffectivePort request,
-          Path = request.Path.Value,
-          Query = request.QueryString.ToUriComponent())
+          Path = request.Path.ToUriComponent (),
+          Query = request.QueryString.ToUriComponent ())
       builder.Uri
     let userAgent    = getUserAgentString request.Headers
     let referrer     = getReferrer request.Headers

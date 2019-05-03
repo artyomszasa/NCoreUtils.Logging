@@ -15,50 +15,66 @@ module private BulkLoopHelpers =
       eprintf "Failed to dispatch one or more log messages: %A" exn
       async.Zero ()
 
-type private BulkLoop =
+type internal IMessageReceiver<'a> =
+  abstract Receive : unused:int -> Async<'a>
+  abstract TryReceive : timeout:int -> Async<'a option>
+
+module internal MessageReceiver =
+
+  let ofMailboxProcessor (source : MailboxProcessor<_>) =
+    { new IMessageReceiver<_> with
+        member __.Receive _ = source.Receive ()
+        member __.TryReceive timeout = source.TryReceive timeout
+    }
+
+type internal BulkLoop =
   val private sink : IBulkSink
-  val private input : MailboxProcessor<LogMessage>
+  val private input : IMessageReceiver<LogMessage>
   val private isDisposed : unit -> bool
   val private dispatchMessages : IReadOnlyList<LogMessage> -> Async<unit>
   new (sink : IBulkSink, input, isDisposed) =
     let dispatchMessages (messages : IReadOnlyList<LogMessage>) =
-      let queue = sink.CreateQueue ()
-      messages |> Seq.iter (fun msg -> msg.Enqueue queue)
-      match isDisposed () with
-      | true -> async.Zero ()
-      | _    -> async.TryWith (queue.AsyncFlush (), printErr)
+      BulkLoop.EnqueueAndDispatch (sink, messages, isDisposed)
     { sink             = sink
       input            = input
       isDisposed       = isDisposed
       dispatchMessages = dispatchMessages }
-  member this.Execute (max : int, messages : List<_>) =
+
+  [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+  static member private EnqueueAndDispatch (sink : IBulkSink, messages : IReadOnlyList<LogMessage>, isDisposed : unit -> bool) =
+    let queue = sink.CreateQueue ()
+    for msg in messages do
+      msg.Enqueue queue
+    match isDisposed () with
+    | true -> async.Zero ()
+    | _    -> async.TryWith (queue.AsyncFlush (), printErr)
+
+  member internal this.Execute (max : int, messages : List<_>) =
     match max - messages.Count with
     | 0 -> async.Return (messages :> IReadOnlyList<_>)
     | _ ->
-      let inline tryReceive (_ : int) = this.input.TryReceive (timeout = 0)
-      let inline handleOne (maybeMessage : LogMessage option) =
+      let handleOne (maybeMessage : LogMessage option) =
         match maybeMessage with
         | Some message ->
           messages.Add message
           this.Execute (max, messages)
         | _ -> this.Execute (messages.Count, messages)
-      async.Bind (tryReceive Unchecked.defaultof<_>, handleOne)
-  member this.Run (_ : int) =
-    let inline receive (_ : int) =
-      this.input.Receive ()
-    let inline execute (message : LogMessage) =
+      async.Bind (this.input.TryReceive 0, handleOne)
+  member internal this.Run (_ : int) =
+    let execute (message : LogMessage) =
       let messages = ResizeArray<_> 40
       messages.Add message
       async.Bind (this.Execute (40, messages), this.dispatchMessages)
-    async.Bind (receive Unchecked.defaultof<_>, execute)
-  member this.Loop (_ : int) =
-    let inline loop () = this.Loop Unchecked.defaultof<_>
+    async.Bind (this.input.Receive Unchecked.defaultof<_>, execute)
+  member this.Loop (_ : int) : Async<unit> =
+    let loop () = this.Loop Unchecked.defaultof<_>
     async.Bind (this.Run Unchecked.defaultof<_>, loop)
 
 
 type Logger (provider : LoggerProvider,  category : string) =
   /// Scopes
   let stack = ref []
+  member internal __.Scopes = !stack
   /// Creates new scope.
   [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
   [<RequiresExplicitTypeArguments>]
@@ -82,22 +98,6 @@ type Logger (provider : LoggerProvider,  category : string) =
 
 and LoggerProvider (sink : ISink) =
   /// <summary>
-  /// Gets at most <paramref name="n" /> messages. Returns when either no pending messages are present or limit is
-  /// reached.
-  /// </summary>
-  /// <param name="n">Message limit.</param>
-  /// <param name="inbox">Mailbox processor to use.</param>
-  /// <param name="enqueue">Function that is invoked to store the recieved messages.</param>
-  static let rec fetchMessages n (inbox : MailboxProcessor<_>) (enqueue : _ -> unit) : Async<unit> = async {
-    match n with
-    | 0 -> ()
-    | _ ->
-      match! inbox.TryReceive (timeout = 0) with
-      | Some msg ->
-        enqueue msg
-        return! fetchMessages (n - 1) inbox enqueue
-      | _ -> () }
-  /// <summary>
   /// Whether current instance has been disposed as <c>int</c> value (<c>0</c> - alive, <c>1</c> - disposed).
   /// </summary>
   let mutable isDisposed = 0
@@ -109,7 +109,7 @@ and LoggerProvider (sink : ISink) =
   let cancellation = new CancellationTokenSource ()
   /// Inner loop when sink is capable of bulk operations.
   let rec bulkLoop (bulkSink : IBulkSink) (inbox : MailboxProcessor<_>) = // async {
-    let loop = new BulkLoop (bulkSink, inbox, fun () -> 0 <> isDisposed)
+    let loop = new BulkLoop (bulkSink, MessageReceiver.ofMailboxProcessor inbox, fun () -> 0 <> isDisposed)
     loop.Loop Unchecked.defaultof<_>
   /// Inner loop when sink is uncapable of bulk operations.
   let rec loop (sink : ISink) (inbox : MailboxProcessor<_>) = async {

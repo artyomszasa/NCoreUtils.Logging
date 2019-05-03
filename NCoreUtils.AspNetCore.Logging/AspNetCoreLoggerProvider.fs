@@ -1,11 +1,12 @@
 namespace NCoreUtils.Logging
 
+open System
+open System.Diagnostics.CodeAnalysis
+open System.Linq.Expressions
+open System.Threading
 open NCoreUtils
 open NCoreUtils.Logging
 open Microsoft.AspNetCore.Http
-open System
-open System.Linq.Expressions
-open System.Threading
 
 [<AutoOpen>]
 module private Helpers =
@@ -18,6 +19,7 @@ module private Helpers =
     expr.Compile ()
 
   [<RequiresExplicitTypeArguments>]
+  [<ExcludeFromCodeCoverage>]
   let inline tryGetServiceSafe<'a> sp =
     match sp with
     | null -> None

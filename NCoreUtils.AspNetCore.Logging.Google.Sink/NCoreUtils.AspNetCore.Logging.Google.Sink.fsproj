@@ -22,6 +22,7 @@
     <NoWarn>FS2003</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="InternalExtensions.fs" />
     <Compile Include="Sink.fs" />
   </ItemGroup>
