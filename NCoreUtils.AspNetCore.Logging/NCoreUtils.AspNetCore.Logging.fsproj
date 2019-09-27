@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.1.0</Version>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <Version>3.0.0</Version>
     <!-- NuGet -->
     <PackageId>NCoreUtils.AspNetCore.Logging</PackageId>
     <Title>$(PackageId)</Title>
@@ -9,7 +9,7 @@
     <Description>Sink based logging provider implementation for ASP.NET Core.</Description>
     <Copyright>Artyom Antyipin</Copyright>
     <RepositoryUrl>https://github.com/artyomszasa/NCoreUtils.Logging.git</RepositoryUrl>
-    <PackageReleaseNotes>Target F# 4.6.</PackageReleaseNotes>
+    <PackageReleaseNotes>Move to .NET Core 3.</PackageReleaseNotes>
     <!-- Assembly Info -->
     <Product>NCoreUtils</Product>
     <AssemblyName>$(PackageId)</AssemblyName>
@@ -21,7 +21,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>FS2003</NoWarn>
+    <NoWarn>FS2003;NU5105</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="PrePopulateLoggingContext.fs" />
@@ -35,9 +35,9 @@
     <ProjectReference Include="..\NCoreUtils.AspNetCore.Logging.Abstractions\NCoreUtils.AspNetCore.Logging.Abstractions.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
-    <PackageReference Include="NCoreUtils.FSharp.AspNetCore" Version="2.1.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
+    <PackageReference Update="FSharp.Core" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.0.0" />
+    <PackageReference Include="NCoreUtils.FSharp.AspNetCore" Version="3.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
   </ItemGroup>
 </Project>

@@ -6,7 +6,6 @@ open System.Threading
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
-open Microsoft.Extensions.Logging.Internal
 open NCoreUtils.Logging
 open Xunit
 
@@ -27,8 +26,6 @@ let ``cancellation with bulk sink`` () =
     Assert.Empty ((logger :?> Logger).Scopes)
     let scopeDispose = logger.BeginScope "scope"
     Assert.Equal (1, (logger :?> Logger).Scopes.Length)
-    let scope = (logger :?> Logger).Scopes |> List.head
-    Assert.Equal (1, Assert.IsType<FormattedLogValues>(scope).Count)
     logger.Log (logLevel, eventId, "message")
     scopeDispose.Dispose ()
     Assert.Empty ((logger :?> Logger).Scopes)
