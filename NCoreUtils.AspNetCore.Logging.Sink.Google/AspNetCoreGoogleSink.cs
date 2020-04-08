@@ -1,5 +1,7 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Cloud.Logging.Type;
@@ -11,6 +13,8 @@ namespace NCoreUtils.Logging.Google
 {
     public class AspNetCoreGoogleSink : GoogleSinkBase, IAspNetCoreBulkSink
     {
+        private readonly IEnumerable<ILabelProvider> _labelProviders;
+
         private readonly AspNetCoreGoogleLoggingContext _context;
 
         ISinkQueue IBulkSink.CreateQueue()
@@ -19,8 +23,11 @@ namespace NCoreUtils.Logging.Google
         IAspNetCoreSinkQueue IAspNetCoreBulkSink.CreateQueue()
             => CreateQueue();
 
-        public AspNetCoreGoogleSink(AspNetCoreGoogleLoggingContext context)
-            => _context = context ?? throw new ArgumentNullException(nameof(context));
+        public AspNetCoreGoogleSink(AspNetCoreGoogleLoggingContext context, IEnumerable<ILabelProvider>? labelProviders = null)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _labelProviders = labelProviders ?? Enumerable.Empty<ILabelProvider>();
+        }
 
         private HttpRequest? CreateHttpRequest(in AspNetCoreContext context)
         {
@@ -84,9 +91,14 @@ namespace NCoreUtils.Logging.Google
             Exception? exception,
             TState state,
             Func<TState, Exception?, string> formatter,
-            AspNetCoreContext context,
+            in AspNetCoreContext context,
             bool isRequestSummary)
         {
+            var labels = new Dictionary<string, string>();
+            foreach (var labelProvider in _labelProviders)
+            {
+                labelProvider.UpdateLabels(category, eventId, logLevel, in context, labels);
+            }
             var logEntry = new LogEntry
             {
                 LogName = _context.LogName.ToString(),
@@ -94,6 +106,10 @@ namespace NCoreUtils.Logging.Google
                 Severity = GetLogSeverity(logLevel),
                 Timestamp = global::Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(timestamp)
             };
+            foreach (var kv in labels)
+            {
+                logEntry.Labels.Add(kv.Key, kv.Value);
+            }
             if (isRequestSummary)
             {
                 logEntry.HttpRequest = CreateHttpRequest(context);

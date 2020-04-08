@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.AspNetCore.Logging.Abstractions\NCoreUtils.AspNetCore.Logging.Abstractions.csproj" />
     <ProjectReference Include="..\NCoreUtils.Logging.Google.Common\NCoreUtils.Logging.Google.Common.csproj" />
+    <ProjectReference Include="..\NCoreUtils.AspNetCore.Logging.Google.Abstractions\NCoreUtils.AspNetCore.Logging.Google.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Api.Gax" Version="3.0.0" />

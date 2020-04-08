@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;netcoreapp3.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>NCoreUtils.Logging.Google</RootNamespace>
+    <Version>3.1.0-alpha0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.AspNetCore.Logging.Abstractions\NCoreUtils.AspNetCore.Logging.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

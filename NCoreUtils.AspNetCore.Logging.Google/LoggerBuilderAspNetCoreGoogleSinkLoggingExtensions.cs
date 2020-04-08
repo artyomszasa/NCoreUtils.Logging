@@ -15,7 +15,18 @@ namespace NCoreUtils.AspNetCore
 {
     public static class LoggerBuilderAspNetCoreGoogleSinkLoggingExtensions
     {
-        static string? FirstNonEmpty(string? a, string? b)
+        private sealed class AspNetCoreConnectionIdLabelProvider : ILabelProvider
+        {
+            public void UpdateLabels(string category, EventId eventId, LogLevel logLevel, in AspNetCoreContext context, IDictionary<string, string> labels)
+            {
+                if (!string.IsNullOrEmpty(context.ConnectionId))
+                {
+                    labels.Add("aspnetcore-connection-id", context.ConnectionId);
+                }
+            }
+        }
+
+        private static string? FirstNonEmpty(string? a, string? b)
         {
             if (!string.IsNullOrEmpty(a))
             {
@@ -32,7 +43,9 @@ namespace NCoreUtils.AspNetCore
         {
             builder.Services.AddLoggingContext();
             builder.Services.AddSingleton(context);
-            return builder.AddSink<AspNetCoreLoggerProvider<AspNetCoreGoogleSink>, AspNetCoreGoogleSink>();
+            return builder
+                .AddGoogleLabelProvider(new AspNetCoreConnectionIdLabelProvider())
+                .AddSink<AspNetCoreLoggerProvider<AspNetCoreGoogleSink>, AspNetCoreGoogleSink>();
         }
 
         public static ILoggingBuilder AddGoogleSink(
@@ -114,5 +127,17 @@ namespace NCoreUtils.AspNetCore
             }
             return builder.AddGoogleSink(loggingConfiguration, force);
         }
+
+        public static ILoggingBuilder AddGoogleLabelProvider(this ILoggingBuilder builder, ILabelProvider provider)
+        {
+            builder.Services.AddSingleton<ILabelProvider>(provider);
+            return builder;
+        }
+
+        public static ILoggingBuilder AddGoogleLabelProvider(this ILoggingBuilder builder, Action<string, EventId, LogLevel, AspNetCoreContext, IDictionary<string, string>> provider)
+            => builder.AddGoogleLabelProvider(LabelProvider.Create(provider));
+
+        public static ILoggingBuilder AddGoogleLabelProvider(this ILoggingBuilder builder, Action<AspNetCoreContext, IDictionary<string, string>> provider)
+            => builder.AddGoogleLabelProvider(LabelProvider.Create(provider));
     }
 }
