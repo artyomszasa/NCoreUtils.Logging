@@ -17,6 +17,10 @@ namespace NCoreUtils.AspNetCore
 
         public Dictionary<string, string> ResourceLabels { get; } = new Dictionary<string, string>();
 
+        public CategoryHandling CategoryHandling { get; set; }
+
+        public EventIdHandling EventIdHandling { get; set; }
+
         public override string ToString()
         {
             var builder = new StringBuilder();
@@ -70,6 +74,11 @@ namespace NCoreUtils.AspNetCore
                 }
                 builder.Append(nameof(ResourceType)).Append(" = ").Append(ResourceType);
             }
+            if (!first)
+            {
+                builder.Append(", ").Append(nameof(CategoryHandling)).Append(" = ").Append(CategoryHandling.ToString());
+            }
+            builder.Append(", ").Append(nameof(EventIdHandling)).Append(" = ").Append(EventIdHandling.ToString());
             builder.Append(']');
             return builder.ToString();
         }

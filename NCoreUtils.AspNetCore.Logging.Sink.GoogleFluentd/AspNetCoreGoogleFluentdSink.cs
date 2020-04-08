@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NCoreUtils.AspNetCore;
 using NCoreUtils.Logging.Google.Data;
 using NCoreUtils.Logging.Google.Fluentd;
 
@@ -101,6 +102,10 @@ namespace NCoreUtils.Logging.Google
             using var buffer = MemoryPool<char>.Shared.Rent(64 * 1024);
             var textPayload = CreateTextPayload(buffer.Memory.Span, eventId, category, formatter(state, exception), exception?.ToString());
             var labels = new Dictionary<string, string>();
+            if (Context.CategoryHandling == CategoryHandling.IncludeAsLabel)
+            {
+                labels.Add("category", category);
+            }
             foreach (var labelProvider in LabelProviders)
             {
                 labelProvider.UpdateLabels(category, eventId, logLevel, in context, labels);
@@ -121,15 +126,18 @@ namespace NCoreUtils.Logging.Google
         protected string CreateTextPayload(Span<char> buffer, EventId eventId, string categoryName, string message, string? exception)
         {
             var builder = new SpanBuilder(buffer);
-            if (eventId.Id != -1 && eventId != 0)
+            if (Context.EventIdHandling == EventIdHandling.IncludeAlways || (Context.EventIdHandling == EventIdHandling.IncludeValidIds && eventId.Id != -1 && eventId != 0))
             {
                 builder.Append('[');
                 builder.Append(eventId.Id);
                 builder.Append("] ");
             }
-            builder.Append('[');
-            builder.Append(categoryName);
-            builder.Append("] ");
+            if (Context.CategoryHandling == CategoryHandling.IncludeInMessage)
+            {
+                builder.Append('[');
+                builder.Append(categoryName);
+                builder.Append("] ");
+            }
             builder.Append(message);
             if (!string.IsNullOrEmpty(exception))
             {

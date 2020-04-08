@@ -10,6 +10,8 @@ namespace NCoreUtils.Logging.Google
     {
         private readonly GoogleLoggingContext _context;
 
+        protected override bool IncludeCategory => true;
+
         ISinkQueue IBulkSink.CreateQueue()
             => CreateQueue();
 
@@ -43,6 +45,9 @@ namespace NCoreUtils.Logging.Google
                 Console.Error.WriteLine(rpcExn);
             }
         }
+
+        protected override bool IncludeEventId(Microsoft.Extensions.Logging.EventId eventId)
+            => eventId.Id != 0 && eventId.Id != -1;
 
         public GoogleSinkQueue CreateQueue()
             => new GoogleSinkQueue(this);

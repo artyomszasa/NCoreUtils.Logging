@@ -37,7 +37,9 @@ namespace NCoreUtils.AspNetCore
             string? projectId = default,
             string? logId = default,
             string? serviceVersion = default,
-            bool force = false)
+            bool force = false,
+            CategoryHandling categoryHandling = CategoryHandling.IncludeAsLabel,
+            EventIdHandling eventIdHandling = EventIdHandling.IncludeValidIds)
         {
             if (!force && string.IsNullOrEmpty(projectId))
             {
@@ -63,7 +65,9 @@ namespace NCoreUtils.AspNetCore
                 uri,
                 projectId!,
                 logId ?? Assembly.GetEntryAssembly()?.GetName()?.Name?.Replace(".", "-")?.ToLowerInvariant() ?? throw new InvalidOperationException("Unable to get log id."),
-                serviceVersion
+                serviceVersion,
+                categoryHandling,
+                eventIdHandling
             ));
         }
 

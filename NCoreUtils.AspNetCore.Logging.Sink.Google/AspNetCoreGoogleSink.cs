@@ -8,6 +8,7 @@ using Google.Cloud.Logging.Type;
 using Google.Cloud.Logging.V2;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
+using NCoreUtils.AspNetCore;
 
 namespace NCoreUtils.Logging.Google
 {
@@ -16,6 +17,8 @@ namespace NCoreUtils.Logging.Google
         private readonly IEnumerable<ILabelProvider> _labelProviders;
 
         private readonly AspNetCoreGoogleLoggingContext _context;
+
+        protected override bool IncludeCategory => _context.CategoryHandling == CategoryHandling.IncludeInMessage;
 
         ISinkQueue IBulkSink.CreateQueue()
             => CreateQueue();
@@ -95,6 +98,10 @@ namespace NCoreUtils.Logging.Google
             bool isRequestSummary)
         {
             var labels = new Dictionary<string, string>();
+            if (_context.CategoryHandling == CategoryHandling.IncludeAsLabel)
+            {
+                labels.Add("category", category);
+            }
             foreach (var labelProvider in _labelProviders)
             {
                 labelProvider.UpdateLabels(category, eventId, logLevel, in context, labels);
@@ -169,6 +176,9 @@ namespace NCoreUtils.Logging.Google
                 Console.Error.WriteLine(rpcExn);
             }
         }
+
+        protected override bool IncludeEventId(EventId eventId)
+            => _context.EventIdHandling == EventIdHandling.IncludeAlways || (_context.EventIdHandling == EventIdHandling.IncludeValidIds && eventId.Id != -1 && eventId != 0);
 
         public AspNetCoreGoogleSinkQueue CreateQueue()
             => new AspNetCoreGoogleSinkQueue(this);

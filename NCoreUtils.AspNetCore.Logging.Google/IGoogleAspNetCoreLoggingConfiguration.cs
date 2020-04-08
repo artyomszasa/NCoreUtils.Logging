@@ -13,5 +13,9 @@ namespace NCoreUtils.AspNetCore
         string? ResourceType { get; }
 
         IReadOnlyDictionary<string, string>? ResourceLabels { get; }
+
+        CategoryHandling CategoryHandling { get; }
+
+        EventIdHandling EventIdHandling { get; }
     }
 }

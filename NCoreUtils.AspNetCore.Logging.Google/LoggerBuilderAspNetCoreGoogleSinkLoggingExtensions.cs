@@ -89,7 +89,13 @@ namespace NCoreUtils.AspNetCore
                 }
                 serviceVersion = FirstNonEmpty(platform.GetServiceVersion(), configuration?.ServiceVersion);
             }
-            return builder.AddGoogleSink(new AspNetCoreGoogleLoggingContext(logName, resource, serviceVersion));
+            return builder.AddGoogleSink(new AspNetCoreGoogleLoggingContext(
+                logName,
+                resource,
+                serviceVersion,
+                configuration?.CategoryHandling ?? CategoryHandling.IncludeAsLabel,
+                configuration?.EventIdHandling ?? EventIdHandling.IncludeValidIds
+            ));
         }
 
         public static ILoggingBuilder AddGoogleSink(
@@ -109,14 +115,18 @@ namespace NCoreUtils.AspNetCore
             string? serviceVersion = default,
             string? resourceType = default,
             IReadOnlyDictionary<string, string>? labels = default,
-            bool force = false)
+            bool force = false,
+            CategoryHandling categoryHandling = CategoryHandling.IncludeAsLabel,
+            EventIdHandling eventIdHandling = EventIdHandling.IncludeValidIds)
         {
             var loggingConfiguration = new GoogleAspNetCoreLoggingConfiguration
             {
                 ProjectId = projectId,
                 ServiceName = serviceName,
                 ServiceVersion = serviceVersion,
-                ResourceType = resourceType
+                ResourceType = resourceType,
+                CategoryHandling = categoryHandling,
+                EventIdHandling = eventIdHandling
             };
             if (null != labels)
             {

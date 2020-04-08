@@ -63,6 +63,8 @@ namespace NCoreUtils.Logging.Google
 
         private LoggingServiceV2Client? _client;
 
+        protected abstract bool IncludeCategory { get; }
+
         protected virtual ValueTask<LoggingServiceV2Client> GetClientAsync(CancellationToken cancellationToken)
         {
             if (_client is null)
@@ -82,15 +84,18 @@ namespace NCoreUtils.Logging.Google
         protected string CreateTextPayload(Span<char> buffer, EventId eventId, string categoryName, string message, string? exception)
         {
             var builder = new SpanBuilder(buffer);
-            if (eventId.Id != -1 && eventId != 0)
+            if (IncludeEventId(eventId))
             {
                 builder.Append('[');
                 builder.Append(eventId.Id);
                 builder.Append("] ");
             }
-            builder.Append('[');
-            builder.Append(categoryName);
-            builder.Append("] ");
+            if (IncludeCategory)
+            {
+                builder.Append('[');
+                builder.Append(categoryName);
+                builder.Append("] ");
+            }
             builder.Append(message);
             if (!string.IsNullOrEmpty(exception))
             {
@@ -103,5 +108,7 @@ namespace NCoreUtils.Logging.Google
             }
             return builder.ToString();
         }
+
+        protected abstract bool IncludeEventId(EventId eventId);
     }
 }
