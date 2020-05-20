@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NCoreUtils.AspNetCore;
 using NCoreUtils.Logging.Google.Data;
 using NCoreUtils.Logging.Google.Fluentd;
@@ -34,22 +35,27 @@ namespace NCoreUtils.Logging.Google
         protected static LogSeverity GetLogSeverity(LogLevel logLevel)
             => _level2severity.TryGetValue(logLevel, out var severity) ? severity : LogSeverity.Default;
 
+        private Func<JsonSerializerOptions> _jsonSerializerOptionsSource;
+
         protected IEnumerable<ILabelProvider> LabelProviders { get; }
 
         protected AspNetCoreGoogleFluentdLoggingContext Context { get; }
 
         protected IFluentdSink Sink { get; }
 
-        protected JsonSerializerOptions JsonSerializerOptions { get; }
+        protected JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptionsSource();
 
         public AspNetCoreGoogleFluentdSink(
             AspNetCoreGoogleFluentdLoggingContext context,
-            JsonSerializerOptions? jsonSerializerOptions = default,
+            IOptionsMonitor<JsonSerializerOptions>? jsonSerializerOptions = default,
             IEnumerable<ILabelProvider>? labelProviders = null)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             Sink = FluentdSink.Create(new Uri(context.FluentdUri, UriKind.Absolute));
-            JsonSerializerOptions = jsonSerializerOptions ?? _defaultJsonSerializerOptions;
+            // JsonSerializerOptions = jsonSerializerOptions ?? _defaultJsonSerializerOptions;
+            _jsonSerializerOptionsSource = jsonSerializerOptions is null
+                ? new Func<JsonSerializerOptions>(() => _defaultJsonSerializerOptions)
+                : new Func<JsonSerializerOptions>(() => jsonSerializerOptions.CurrentValue);
             LabelProviders = labelProviders ?? Enumerable.Empty<ILabelProvider>();
         }
 

@@ -33,7 +33,9 @@ namespace NCoreUtils.Logging.Unit
             var conf = new AspNetCoreGoogleLoggingContext(
                 logName: new LogName("test", "test"),
                 resource: new MonitoredResource { Type = "global" },
-                serviceVersion: default
+                serviceVersion: default,
+                categoryHandling: CategoryHandling.IncludeAsLabel,
+                eventIdHandling: EventIdHandling.IncludeAlways
             );
             var services = new ServiceCollection()
                 .AddSingleton(conf);
