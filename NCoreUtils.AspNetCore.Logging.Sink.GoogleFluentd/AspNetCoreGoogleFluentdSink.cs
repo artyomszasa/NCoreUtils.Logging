@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using NCoreUtils.AspNetCore;
 using NCoreUtils.Logging.Google.Data;
 using NCoreUtils.Logging.Google.Fluentd;
+using NCoreUtils.Logging.Google.Internal;
 
 namespace NCoreUtils.Logging.Google
 {
@@ -35,7 +36,7 @@ namespace NCoreUtils.Logging.Google
         protected static LogSeverity GetLogSeverity(LogLevel logLevel)
             => _level2severity.TryGetValue(logLevel, out var severity) ? severity : LogSeverity.Default;
 
-        private Func<JsonSerializerOptions> _jsonSerializerOptionsSource;
+        private Func<GoogleFluentdOptions> _optionsSource;
 
         protected IEnumerable<ILabelProvider> LabelProviders { get; }
 
@@ -43,19 +44,24 @@ namespace NCoreUtils.Logging.Google
 
         protected IFluentdSink Sink { get; }
 
-        protected JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptionsSource();
+        protected GoogleFluentdOptions Options => _optionsSource();
 
         public AspNetCoreGoogleFluentdSink(
             AspNetCoreGoogleFluentdLoggingContext context,
-            IOptionsMonitor<JsonSerializerOptions>? jsonSerializerOptions = default,
+            IOptionsMonitor<GoogleFluentdOptions>? optionsMonitor = default,
             IEnumerable<ILabelProvider>? labelProviders = null)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             Sink = FluentdSink.Create(new Uri(context.FluentdUri, UriKind.Absolute));
-            // JsonSerializerOptions = jsonSerializerOptions ?? _defaultJsonSerializerOptions;
-            _jsonSerializerOptionsSource = jsonSerializerOptions is null
-                ? new Func<JsonSerializerOptions>(() => _defaultJsonSerializerOptions)
-                : new Func<JsonSerializerOptions>(() => jsonSerializerOptions.CurrentValue);
+            if (optionsMonitor is null)
+            {
+                var options = new GoogleFluentdOptions();
+                _optionsSource = () => options;
+            }
+            else
+            {
+                _optionsSource = () => optionsMonitor.CurrentValue;
+            }
             LabelProviders = labelProviders ?? Enumerable.Empty<ILabelProvider>();
         }
 
@@ -108,7 +114,7 @@ namespace NCoreUtils.Logging.Google
             using var buffer = MemoryPool<char>.Shared.Rent(64 * 1024);
             var textPayload = CreateTextPayload(buffer.Memory.Span, eventId, category, formatter(state, exception), exception?.ToString());
             var labels = new Dictionary<string, string>();
-            if (Context.CategoryHandling == CategoryHandling.IncludeAsLabel)
+            if (Options.CategoryHandling == CategoryHandling.IncludeAsLabel)
             {
                 labels.Add("category", category);
             }
@@ -117,13 +123,20 @@ namespace NCoreUtils.Logging.Google
                 labelProvider.UpdateLabels(category, eventId, logLevel, in context, labels);
             }
             return new LogEntry(
-                logName: $"projects/{Context.ProjectId}/logs/{Context.LogId}",
+                logName: Fmt.LogName(Context.ProjectId, Context.LogId),
                 severity: GetLogSeverity(logLevel),
                 message: textPayload,
                 timestamp: timestamp,
                 serviceContext: serviceContext,
                 context: errorContext,
                 httpRequest: request,
+                trace: Options.TraceHandling switch
+                {
+                    TraceHandling.Enabled => context.TraceId,
+                    TraceHandling.Disabled => default,
+                    TraceHandling.Summary => request is null ? default : context.TraceId,
+                    _ => default
+                },
                 labels: labels
             );
         }
@@ -131,14 +144,15 @@ namespace NCoreUtils.Logging.Google
         [MethodImpl(MethodImplOptions.NoInlining)]
         protected string CreateTextPayload(Span<char> buffer, EventId eventId, string categoryName, string message, string? exception)
         {
+            var options = Options;
             var builder = new SpanBuilder(buffer);
-            if (Context.EventIdHandling == EventIdHandling.IncludeAlways || (Context.EventIdHandling == EventIdHandling.IncludeValidIds && eventId.Id != -1 && eventId != 0))
+            if (options.EventIdHandling == EventIdHandling.IncludeAlways || (options.EventIdHandling == EventIdHandling.IncludeValidIds && eventId.Id != -1 && eventId != 0))
             {
                 builder.Append('[');
                 builder.Append(eventId.Id);
                 builder.Append("] ");
             }
-            if (Context.CategoryHandling == CategoryHandling.IncludeInMessage)
+            if (options.CategoryHandling == CategoryHandling.IncludeInMessage)
             {
                 builder.Append('[');
                 builder.Append(categoryName);
@@ -170,7 +184,7 @@ namespace NCoreUtils.Logging.Google
             CancellationToken cancellationToken)
         {
             var entry = CreateLogEntry(timestamp, category, logLevel, eventId, exception, state, formatter, context, isRequestSummary);
-            var json = JsonSerializer.Serialize(entry, JsonSerializerOptions);
+            var json = JsonSerializer.Serialize(entry, Options.JsonSerializerOptions);
             return Sink.WriteAsync(json, cancellationToken);
         }
 

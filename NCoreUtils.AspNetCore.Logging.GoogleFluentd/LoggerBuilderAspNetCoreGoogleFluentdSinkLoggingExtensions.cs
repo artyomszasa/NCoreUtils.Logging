@@ -13,7 +13,12 @@ namespace NCoreUtils.AspNetCore
     {
         private sealed class AspNetCoreConnectionIdLabelProvider : ILabelProvider
         {
-            public void UpdateLabels(string category, EventId eventId, LogLevel logLevel, in AspNetCoreContext context, IDictionary<string, string> labels)
+            public void UpdateLabels(
+                string category,
+                EventId eventId,
+                LogLevel logLevel,
+                in AspNetCoreContext context,
+                IDictionary<string, string> labels)
             {
                 if (!string.IsNullOrEmpty(context.ConnectionId))
                 {
@@ -22,10 +27,44 @@ namespace NCoreUtils.AspNetCore
             }
         }
 
-        public static ILoggingBuilder AddGoogleFluentdSink(this ILoggingBuilder builder, AspNetCoreGoogleFluentdLoggingContext loggingContext)
+        private static string GetProjectId(string? projectId, bool force)
         {
-            builder.Services.AddLoggingContext();
-            builder.Services.AddSingleton(loggingContext);
+            string result;
+            if (!force && string.IsNullOrEmpty(projectId))
+            {
+                try
+                {
+                    var metaEndpoint = "http://metadata.google.internal/computeMetadata/v1/project/project-id";
+                    using var client = new HttpClient();
+                    using var request = new HttpRequestMessage(HttpMethod.Get, metaEndpoint);
+                    request.Headers.Add("Metadata-Flavor", "Google");
+                    var response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).Result;
+                    result = response.Content.ReadAsStringAsync().Result;
+                }
+                catch
+                {
+                    Console.Error.WriteLine();
+                }
+            }
+            return string.IsNullOrEmpty(projectId)
+                ? throw new InvalidOperationException("Unable to get project id.")
+                : projectId;
+        }
+
+        public static ILoggingBuilder AddGoogleFluentdSink(
+            this ILoggingBuilder builder,
+            AspNetCoreGoogleFluentdLoggingContext loggingContext,
+            Action<GoogleFluentdOptions>? configureOptions = default)
+        {
+            builder.Services
+                .AddLoggingContext()
+                .AddSingleton(loggingContext)
+                .AddDefaultGoogleTraceIdProvider();
+            var options = builder.Services.AddOptions<GoogleFluentdOptions>();
+            if (!(configureOptions is null))
+            {
+                options.Configure(configureOptions);
+            }
             return builder
                 .AddGoogleLabelProvider(new AspNetCoreConnectionIdLabelProvider())
                 .AddSink<AspNetCoreLoggerProvider<AspNetCoreGoogleFluentdSink>, AspNetCoreGoogleFluentdSink>();
@@ -38,37 +77,33 @@ namespace NCoreUtils.AspNetCore
             string? logId = default,
             string? serviceVersion = default,
             bool force = false,
-            CategoryHandling categoryHandling = CategoryHandling.IncludeAsLabel,
-            EventIdHandling eventIdHandling = EventIdHandling.IncludeValidIds)
+            TraceHandling? traceHandling = default,
+            CategoryHandling? categoryHandling = default,
+            EventIdHandling? eventIdHandling = default,
+            Action<GoogleFluentdOptions>? configureOptions = default)
         {
-            if (!force && string.IsNullOrEmpty(projectId))
-            {
-                // Try get from meta.
-                try
-                {
-                    var metaEndpoint = "http://metadata.google.internal/computeMetadata/v1/project/project-id";
-                    using var client = new HttpClient();
-                    using var request = new HttpRequestMessage(HttpMethod.Get, metaEndpoint);
-                    request.Headers.Add("Metadata-Flavor", "Google");
-                    var response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).Result;
-                    projectId = response.Content.ReadAsStringAsync().Result;
-                }
-                catch (Exception exn)
-                {
-                    if (string.IsNullOrEmpty(projectId))
-                    {
-                        throw new InvalidOperationException("Unable to get project id.", exn);
-                    }
-                }
-            }
+            var pid = GetProjectId(projectId, force);
             return builder.AddGoogleFluentdSink(new AspNetCoreGoogleFluentdLoggingContext(
                 uri,
-                projectId!,
+                pid,
                 logId ?? Assembly.GetEntryAssembly()?.GetName()?.Name?.Replace(".", "-")?.ToLowerInvariant() ?? throw new InvalidOperationException("Unable to get log id."),
-                serviceVersion,
-                categoryHandling,
-                eventIdHandling
-            ));
+                serviceVersion
+            ), options =>
+            {
+                if (traceHandling.HasValue)
+                {
+                    options.TraceHandling = traceHandling.Value;
+                }
+                if (categoryHandling.HasValue)
+                {
+                    options.CategoryHandling = categoryHandling.Value;
+                }
+                if (eventIdHandling.HasValue)
+                {
+                    options.EventIdHandling = eventIdHandling.Value;
+                }
+                configureOptions?.Invoke(options);
+            });
         }
 
         public static ILoggingBuilder AddGoogleLabelProvider(this ILoggingBuilder builder, ILabelProvider provider)

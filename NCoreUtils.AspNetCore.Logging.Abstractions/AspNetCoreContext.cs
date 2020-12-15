@@ -20,6 +20,8 @@ namespace NCoreUtils.Logging
 
         public string? RemoteIp { get; internal set; }
 
+        public string? TraceId { get; internal set; }
+
         public ReadOnlyDictionaryWrapper<string, StringValues> Headers { get; internal set; }
 
         public string? User { get; internal set; }
@@ -38,6 +40,7 @@ namespace NCoreUtils.Logging
             string? referrer,
             int? responseStatusCode,
             string? remoteIp,
+            string? traceId,
             IReadOnlyDictionary<string, StringValues>? headers,
             string? user)
         {
@@ -48,6 +51,7 @@ namespace NCoreUtils.Logging
             Referrer = referrer;
             ResponseStatusCode = responseStatusCode;
             RemoteIp = remoteIp;
+            TraceId = traceId;
             Headers = new ReadOnlyDictionaryWrapper<string, StringValues>(headers);
             User = user;
             Latency = default;

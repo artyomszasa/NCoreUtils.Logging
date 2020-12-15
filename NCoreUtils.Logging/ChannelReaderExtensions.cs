@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -8,11 +9,31 @@ namespace NCoreUtils.Logging
 {
     internal static class ChannelReaderExtensions
     {
+        private sealed class Counter
+        {
+            private int _value;
+
+            public int Value
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _value;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Counter(int initialValue)
+                => _value = initialValue;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Increment()
+            {
+                ++_value;
+            }
+        }
 
         private static async ValueTask DoReadAllAvailableWithinAsync<T>(
             this ChannelReader<T> reader,
             T[] buffer,
-            RefBox<int> counter,
+            Counter counter,
             CancellationToken cancellationToken)
         {
             while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
@@ -20,7 +41,7 @@ namespace NCoreUtils.Logging
                 while (buffer.Length > counter.Value && reader.TryRead(out T item))
                 {
                     buffer[counter.Value] = item;
-                    ++counter.Value;
+                    counter.Increment();
                 }
             }
         }
@@ -34,7 +55,7 @@ namespace NCoreUtils.Logging
         {
             using var timeoutCancellation = new CancellationTokenSource(timeout);
             using var compoisteCancellation = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellation.Token, cancellationToken);
-            var counter = new RefBox<int>(index);
+            var counter = new Counter(index);
             try
             {
                 await reader.DoReadAllAvailableWithinAsync(buffer, counter, compoisteCancellation.Token);

@@ -47,6 +47,16 @@ namespace NCoreUtils.Logging
             {
                 return;
             }
+            // Trace ID -- may be generated during the request
+            if (httpContext.RequestServices.TryGetOptionalService(out ITraceIdProvider? traceIdProvider))
+            {
+                context.TraceId = traceIdProvider.TraceId;
+            }
+            // id request scope has been disposed trace id may have been written into HttpContext.Items
+            else if (httpContext.Items.TryGetValue(HttpContextItemIds.TraceId, out var boxedTraceId) && boxedTraceId is string traceId)
+            {
+                context.TraceId = traceId;
+            }
             // User
             context.User = GetUser(httpContext.User);
             // ResponseStatusCode
@@ -82,7 +92,9 @@ namespace NCoreUtils.Logging
             // Referrer
             context.Referrer = GetReferrer(request.Headers);
             // Headers
-            context.Headers = new ReadOnlyDictionaryWrapper<string, StringValues>(ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, request.Headers));
+            var headers = ImmutableDictionary.CreateBuilder<string, StringValues>(StringComparer.OrdinalIgnoreCase);
+            headers.AddRange(request.Headers);
+            context.Headers = new ReadOnlyDictionaryWrapper<string, StringValues>(headers);
             // ConnectionId
             context.ConnectionId = httpContext.Connection?.Id;
             // RemoteIp
@@ -93,10 +105,10 @@ namespace NCoreUtils.Logging
 
         AspNetCoreContext _aspNetCoreContext;
 
-        public AspNetCoreContext AspNetCoreContext
+        public ref AspNetCoreContext AspNetCoreContext
         {
-            get => _aspNetCoreContext;
-            set => _aspNetCoreContext = value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _aspNetCoreContext;
         }
 
         internal void PopulateFrom(HttpContext? httpContext)

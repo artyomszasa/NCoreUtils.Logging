@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace NCoreUtils.Logging.Google.Data
 {
+    [ExcludeFromCodeCoverage]
     public class LatencyConveter : JsonConverter<TimeSpan?>
     {
         public override TimeSpan? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

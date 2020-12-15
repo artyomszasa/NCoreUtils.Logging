@@ -4,9 +4,15 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <RootNamespace>NCoreUtils</RootNamespace>
-    <Version>3.1.0-alpha1</Version>
+    <Version>3.1.0-alpha2</Version>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.AspNetCore.Logging.Abstractions\NCoreUtils.AspNetCore.Logging.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>

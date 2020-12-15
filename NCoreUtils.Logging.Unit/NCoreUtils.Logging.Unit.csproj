@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Moq" Version="4.13.1" />
+    <PackageReference Include="NCoreUtils.Extensions.Json.Immutable" Version="1.0.5" />
     <PackageReference Include="ReportGenerator" Version="4.5.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -21,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.AspNetCore.Logging.Google\NCoreUtils.AspNetCore.Logging.Google.csproj" />
+    <ProjectReference Include="..\NCoreUtils.AspNetCore.Logging.GoogleFluentd\NCoreUtils.AspNetCore.Logging.GoogleFluentd.csproj" />
     <ProjectReference Include="..\NCoreUtils.Logging.Google\NCoreUtils.Logging.Google.csproj" />
   </ItemGroup>
   <Target Name="BeforeRunCoverageTests">

@@ -1,5 +1,4 @@
 using System;
-using NCoreUtils.AspNetCore;
 
 namespace NCoreUtils.Logging.Google
 {
@@ -16,24 +15,16 @@ namespace NCoreUtils.Logging.Google
 
         public string? ServiceVersion { get; }
 
-        public CategoryHandling CategoryHandling { get; }
-
-        public EventIdHandling EventIdHandling { get; }
-
         public AspNetCoreGoogleFluentdLoggingContext(
             string fluentdUri,
             string projectId,
             string logId,
-            string? serviceVersion,
-            CategoryHandling categoryHandling,
-            EventIdHandling eventIdHandling)
+            string? serviceVersion)
         {
             FluentdUri = fluentdUri;
             ProjectId = projectId ?? throw new ArgumentNullException(nameof(projectId));
             LogId = logId ?? throw new ArgumentNullException(nameof(logId));
             ServiceVersion = serviceVersion;
-            CategoryHandling = categoryHandling;
-            EventIdHandling = eventIdHandling;
         }
     }
 }
