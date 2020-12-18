@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <RootNamespace>NCoreUtils.Logging.Google</RootNamespace>
+    <!-- NuGet -->
+    <PackageId>NCoreUtils.Logging.Sink.Google.Common</PackageId>
+    <Title>$(PackageId)</Title>
+    <Description>Common sink implementation hepers for google sinks.</Description>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <!-- Assembly Info -->
+    <AssemblyName>$(PackageId)</AssemblyName>
+    <AssemblyTitle>$(AssemblyName)</AssemblyTitle>
+    <!-- Compilation -->
+    <OutputType>Library</OutputType>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.Logging.Abstractions\NCoreUtils.Logging.Abstractions.csproj" />
+    <ProjectReference Include="..\NCoreUtils.Logging.Sink\NCoreUtils.Logging.Sink.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NCoreUtils.Extensions.Memory" Version="2.0.0" />
+  </ItemGroup>
+</Project>

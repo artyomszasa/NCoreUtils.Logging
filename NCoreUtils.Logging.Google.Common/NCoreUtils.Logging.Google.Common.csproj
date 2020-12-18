@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <RootNamespace>NCoreUtils.Logging.Google.Internal</RootNamespace>
+    <!-- NuGet -->
+    <PackageId>NCoreUtils.Logging.Google.Common</PackageId>
+    <Title>$(PackageId)</Title>
+    <Description>Common helpers for DI related extensions for google stackdriver sinks.</Description>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <!-- Assembly Info -->
+    <AssemblyName>$(PackageId)</AssemblyName>
+    <AssemblyTitle>$(AssemblyName)</AssemblyTitle>
+    <!-- Compilation -->
+    <OutputType>Library</OutputType>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.2.0" />
+    <PackageReference Include="Google.Api.Gax" Version="3.2.0" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargeteFramework)' != 'netstandard2.1' ">
+    <PackageReference Include="Nullable" Version="1.3.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

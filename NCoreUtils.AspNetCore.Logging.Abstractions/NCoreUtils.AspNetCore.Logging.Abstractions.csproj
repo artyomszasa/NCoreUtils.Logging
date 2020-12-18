@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <RootNamespace>NCoreUtils.Logging</RootNamespace>
+    <!-- NuGet -->
+    <PackageId>NCoreUtils.AspNetCore.Logging.Abstractions</PackageId>
+    <Title>$(PackageId)</Title>
+    <Description>Sink based logging ASP.NET Core specific abstractions.</Description>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <!-- Assembly Info -->
+    <AssemblyName>$(PackageId)</AssemblyName>
+    <AssemblyTitle>$(AssemblyName)</AssemblyTitle>
+    <!-- Compilation -->
+    <OutputType>Library</OutputType>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.Logging.Abstractions\NCoreUtils.Logging.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

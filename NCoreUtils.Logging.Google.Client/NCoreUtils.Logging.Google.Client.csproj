@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <RootNamespace>NCoreUtils.Logging</RootNamespace>
+    <!-- NuGet -->
+    <PackageId>NCoreUtils.Logging.Google.Client</PackageId>
+    <Title>$(PackageId)</Title>
+    <Description>DI related extensions for google stackdriver client API sink.</Description>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <!-- Assembly Info -->
+    <AssemblyName>$(PackageId)</AssemblyName>
+    <AssemblyTitle>$(AssemblyName)</AssemblyTitle>
+    <!-- Compilation -->
+    <OutputType>Library</OutputType>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.Logging\NCoreUtils.Logging.csproj" />
+    <ProjectReference Include="..\NCoreUtils.Logging.Sink.Google.Client\NCoreUtils.Logging.Sink.Google.Client.csproj" />
+    <ProjectReference Include="..\NCoreUtils.Logging.Google.Common\NCoreUtils.Logging.Google.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Api.Gax.Grpc" Version="3.2.0" />
+  </ItemGroup>
+</Project>
