@@ -25,7 +25,7 @@ namespace NCoreUtils.Logging
                 .Configure(o => o.Configuration = configuration);
             if (!(configureOptions is null))
             {
-                opts.Configure(o => o.Configuration = configuration);
+                opts.Configure(o => configureOptions(o));
             }
             builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
             {
