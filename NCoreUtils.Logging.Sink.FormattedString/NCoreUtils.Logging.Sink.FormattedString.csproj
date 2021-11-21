@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
-    <RootNamespace>NCoreUtils.Logging</RootNamespace>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Version>3.1.0.1-alpha02</Version>
+    <RootNamespace>NCoreUtils.Logging.FormattedString</RootNamespace>
     <!-- NuGet -->
-    <PackageId>NCoreUtils.Logging.Sink</PackageId>
+    <PackageId>NCoreUtils.Logging.Sink.FormattedString</PackageId>
     <Title>$(PackageId)</Title>
-    <Description>Generic sink implementation for sink based logging.</Description>
+    <Description>Formatted string sink implementation for sink based logging.</Description>
     <PackageReleaseNotes></PackageReleaseNotes>
     <!-- Assembly Info -->
     <AssemblyName>$(PackageId)</AssemblyName>
@@ -15,6 +16,6 @@
     <DebugType>portable</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NCoreUtils.Logging.Abstractions\NCoreUtils.Logging.Abstractions.csproj" />
+    <ProjectReference Include="..\NCoreUtils.Logging.Sink\NCoreUtils.Logging.Sink.csproj" />
   </ItemGroup>
 </Project>

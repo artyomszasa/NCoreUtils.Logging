@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Version>3.1.0.1-alpha02</Version>
     <RootNamespace>NCoreUtils.Logging</RootNamespace>
     <!-- NuGet -->
-    <PackageId>NCoreUtils.Logging.Google.Client</PackageId>
+    <PackageId>NCoreUtils.Logging.FormattedString</PackageId>
     <Title>$(PackageId)</Title>
-    <Description>DI related extensions for google stackdriver client API sink.</Description>
+    <Description>DI related extensions for formatted string sink.</Description>
     <PackageReleaseNotes></PackageReleaseNotes>
     <!-- Assembly Info -->
     <AssemblyName>$(PackageId)</AssemblyName>
@@ -16,10 +17,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.Logging\NCoreUtils.Logging.csproj" />
-    <ProjectReference Include="..\NCoreUtils.Logging.Sink.Google.Client\NCoreUtils.Logging.Sink.Google.Client.csproj" />
-    <ProjectReference Include="..\NCoreUtils.Logging.Google.Common\NCoreUtils.Logging.Google.Common.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Google.Api.Gax.Grpc" Version="3.2.0" />
+    <ProjectReference Include="..\NCoreUtils.Logging.Sink.FormattedString\NCoreUtils.Logging.Sink.FormattedString.csproj" />
   </ItemGroup>
 </Project>
