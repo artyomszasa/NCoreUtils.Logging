@@ -17,7 +17,7 @@ namespace NCoreUtils.Logging.Google.Internal
                 _service = service;
             }
 
-            public object GetService(Type serviceType)
+            public object? GetService(Type serviceType)
             {
                 if (serviceType == typeof(IServiceProvider))
                 {

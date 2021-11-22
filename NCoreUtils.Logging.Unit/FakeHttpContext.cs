@@ -14,20 +14,20 @@ namespace NCoreUtils.Logging.Unit
     {
         sealed class FakeConnectionInfo : ConnectionInfo
         {
-            public override X509Certificate2 ClientCertificate { get; set; } = default!;
+            public override X509Certificate2? ClientCertificate { get; set; } = default!;
             public override string Id { get; set; } = "xxx";
-            public override IPAddress LocalIpAddress { get; set; } = IPAddress.Loopback;
+            public override IPAddress? LocalIpAddress { get; set; } = IPAddress.Loopback;
             public override int LocalPort { get; set; } = 80;
-            public override IPAddress RemoteIpAddress { get; set; } = IPAddress.Loopback;
+            public override IPAddress? RemoteIpAddress { get; set; } = IPAddress.Loopback;
             public override int RemotePort { get; set; } = 65532;
 
-            public override Task<X509Certificate2> GetClientCertificateAsync(CancellationToken cancellationToken = default)
-                => Task.FromResult<X509Certificate2>(default!);
+            public override Task<X509Certificate2?> GetClientCertificateAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult<X509Certificate2?>(default!);
         }
 
         private class FakeHttpContextAccessor : IHttpContextAccessor
         {
-            public HttpContext HttpContext { get; set; } = default!;
+            public HttpContext? HttpContext { get; set; } = default!;
         }
 
         public static FakeHttpContext Create(
@@ -55,7 +55,7 @@ namespace NCoreUtils.Logging.Unit
 
             var httpContextAccessor = new FakeHttpContextAccessor();
             services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
-            var items = new Dictionary<object, object>();
+            var items = new Dictionary<object, object?>();
             var serviceProvider = services.BuildServiceProvider(true);
             var scope = serviceProvider.CreateScope();
             var contextBuilder = new Mock<HttpContext>();
@@ -80,7 +80,7 @@ namespace NCoreUtils.Logging.Unit
 
         public IServiceScope Scope { get; }
 
-        HttpContext IHttpContextAccessor.HttpContext { get => HttpContext; set { return; } }
+        HttpContext? IHttpContextAccessor.HttpContext { get => HttpContext; set { /* noop */ } }
 
         private FakeHttpContext(HttpContext httpContext, HttpRequest httpRequest, HttpResponse httpResponse, ServiceProvider serviceProvider, IServiceScope scope)
         {

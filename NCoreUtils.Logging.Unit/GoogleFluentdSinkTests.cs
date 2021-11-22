@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NCoreUtils.Logging.Google;
 using Xunit;
 
 namespace NCoreUtils.Logging.Unit
@@ -139,20 +138,8 @@ namespace NCoreUtils.Logging.Unit
                 await context.ServiceProvider.DisposeAsync();
                 output = tcpReader.Complete();
             }
-            var serializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                AllowTrailingCommas = true,
-                Converters = {
-                    ImmutableJsonConverterFactory.GetOrCreate<Google.Data.LogEntry>(),
-                    ImmutableJsonConverterFactory.GetOrCreate<Google.Data.ServiceContext>(),
-                    ImmutableJsonConverterFactory.GetOrCreate<Google.Data.ErrorContext>(),
-                    ImmutableJsonConverterFactory.GetOrCreate<Google.Data.HttpRequest>(),
-                    new Google.Data.SeverityConverter(),
-                    new Google.Data.TimestampConverter()
-                }
-            };
-            var entries = JsonSerializer.Deserialize<List<Google.Data.LogEntry>>("[" + output.Replace("}\n", "},\n") + "]", serializerOptions);
+            var serializerOptions = Google.Data.LogEntryJsonContext.Default.Options;
+            var entries = JsonSerializer.Deserialize<List<Google.Data.LogEntry>>("[" + output.Replace("}\n", "},\n").TrimEnd('\n', '\r', ',') + "]", serializerOptions)!;
             Assert.Equal(4, entries.Count);
             Assert.Equal(2, entries.Count(e => e.Message == "message"));
         }

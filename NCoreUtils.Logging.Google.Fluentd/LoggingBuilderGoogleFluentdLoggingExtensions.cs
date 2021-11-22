@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -30,7 +29,8 @@ namespace NCoreUtils.Logging
             builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
             {
                 var options = serviceProvider.GetRequiredService<IOptionsMonitor<GoogleFluentdSinkOptions>>().Get(optionsName);
-                var payloadWriter = options.CreatePayloadWriter(serviceProvider);
+                var output = DefaultByteSequenceOutput.Create(options.Configuration.Output);
+                var payloadWriter = options.CreatePayloadWriter(serviceProvider, output);
                 var payloadFactory = options.CreatePayloadFactory(serviceProvider);
                 var sink = options.CreateSink(serviceProvider, payloadWriter, payloadFactory);
                 return ActivatorUtilities.CreateInstance<TLoggerProvider>(serviceProvider, sink);
@@ -54,14 +54,13 @@ namespace NCoreUtils.Logging
         public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
             this ILoggingBuilder builder,
             string? name,
-            string output = GoogleFluentdSinkConfiguration.StdOut,
+            string output = DefaultByteSequenceOutput.StdOut,
             string? projectId = default,
             string? service = default,
             string? serviceVersion = default,
             CategoryHandling? categoryHandling = default,
             EventIdHandling? eventIdHandling = default,
             TraceHandling? traceHandling = default,
-            int? bufferSize = default,
             Action<GoogleFluentdSinkOptions>? configureOptions = default)
             where TLoggerProvider : LoggerProvider
         {
@@ -73,7 +72,6 @@ namespace NCoreUtils.Logging
             var options = new GoogleFluentdSinkConfiguration
             {
                 Output = output,
-                BufferSize = bufferSize ?? GoogleFluentdSinkConfiguration.DefaultBufferSize,
                 CategoryHandling = categoryHandling ?? CategoryHandling.IncludeAsLabel,
                 EventIdHandling = eventIdHandling ?? EventIdHandling.Ignore,
                 ProjectId = context.ProjectId,
@@ -86,14 +84,13 @@ namespace NCoreUtils.Logging
 
         public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
             this ILoggingBuilder builder,
-            string output = GoogleFluentdSinkConfiguration.StdOut,
+            string output = DefaultByteSequenceOutput.StdOut,
             string? projectId = default,
             string? service = default,
             string? serviceVersion = default,
             CategoryHandling? categoryHandling = default,
             EventIdHandling? eventIdHandling = default,
             TraceHandling? traceHandling = default,
-            int? bufferSize = default,
             Action<GoogleFluentdSinkOptions>? configureOptions = default)
             where TLoggerProvider : LoggerProvider
             => builder.AddGoogleFluentd<TLoggerProvider>(
@@ -105,20 +102,18 @@ namespace NCoreUtils.Logging
                 categoryHandling,
                 eventIdHandling,
                 traceHandling,
-                bufferSize,
                 configureOptions
             );
 
         public static ILoggingBuilder AddGoogleFluentd(
             this ILoggingBuilder builder,
-            string output = GoogleFluentdSinkConfiguration.StdOut,
+            string output = DefaultByteSequenceOutput.StdOut,
             string? projectId = default,
             string? service = default,
             string? serviceVersion = default,
             CategoryHandling? categoryHandling = default,
             EventIdHandling? eventIdHandling = default,
             TraceHandling? traceHandling = default,
-            int? bufferSize = default,
             Action<GoogleFluentdSinkOptions>? configureOptions = default)
             => builder.AddGoogleFluentd<LoggerProvider>(
                 output,
@@ -128,7 +123,6 @@ namespace NCoreUtils.Logging
                 categoryHandling,
                 eventIdHandling,
                 traceHandling,
-                bufferSize,
                 configureOptions
             );
 
@@ -147,8 +141,7 @@ namespace NCoreUtils.Logging
             );
             return builder.AddGoogleFluentd<TLoggerProvider>(name, new GoogleFluentdSinkConfiguration
             {
-                Output = configuration["Output"] ?? GoogleFluentdSinkConfiguration.StdOut,
-                BufferSize = configuration.GetValue<int?>("BufferSize") ?? GoogleFluentdSinkConfiguration.DefaultBufferSize,
+                Output = configuration["Output"] ?? DefaultByteSequenceOutput.StdOut,
                 CategoryHandling = configuration.GetValue<CategoryHandling?>("CategoryHandling") ?? CategoryHandling.IncludeAsLabel,
                 EventIdHandling = configuration.GetValue<EventIdHandling?>("EventIdHandling") ?? EventIdHandling.Ignore,
                 ProjectId = context.ProjectId,

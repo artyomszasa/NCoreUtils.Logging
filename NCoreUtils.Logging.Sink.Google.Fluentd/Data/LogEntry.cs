@@ -37,6 +37,7 @@ namespace NCoreUtils.Logging.Google.Data
         [JsonPropertyName("logging.googleapis.com/labels")]
         public IReadOnlyDictionary<string, string> Labels { get; }
 
+        [JsonConstructor]
         public LogEntry(
             string logName,
             LogSeverity severity,

@@ -10,7 +10,7 @@ namespace NCoreUtils.Logging.Google
 
         private ByReferenceEqualityComparer() { }
 
-        public bool Equals(T x, T y)
+        public bool Equals(T? x, T? y)
             => ReferenceEquals(x, y);
 
         public int GetHashCode(T obj)

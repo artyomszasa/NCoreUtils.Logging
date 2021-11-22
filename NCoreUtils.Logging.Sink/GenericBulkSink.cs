@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace NCoreUtils.Logging
 {
-    public class GenericBulkSink<TPayload> : GenericSinkBase<TPayload, IBulkPayloadWriter<TPayload>>, IBulkSink
+    public class GenericBulkSink<TPayload> : Internal.GenericSinkBase<TPayload, IBulkPayloadWriter<TPayload>>, IBulkSink
     {
         public GenericBulkSink(IBulkPayloadWriter<TPayload> payloadWriter, IPayloadFactory<TPayload> payloadFactory)
             : base(payloadWriter, payloadFactory)

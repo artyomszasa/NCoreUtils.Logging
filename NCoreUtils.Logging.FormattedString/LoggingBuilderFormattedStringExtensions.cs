@@ -38,7 +38,7 @@ namespace NCoreUtils.Logging
                 services.AddSingleton<IOutputStreamWrappers>(instance);
                 return instance;
             }
-            return (OutputStreamWrappers)descriptor.ImplementationInstance;
+            return (OutputStreamWrappers)descriptor.ImplementationInstance!;
 
         }
 

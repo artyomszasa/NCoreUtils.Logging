@@ -10,19 +10,11 @@ namespace NCoreUtils.Logging.Google
 {
     public class GoogleFluentdSinkConfiguration : IGoogleFluentdSinkConfiguration
     {
-        public const int DefaultBufferSize = 32 * 1024;
-
-        public const string StdOut = "file:///dev/stdout";
-
-        public const string StdErr = "file:///dev/stderr";
-
         private string? _logName;
 
         private string _projectId = string.Empty;
 
         private string _service = string.Empty;
-
-        public JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions();
 
         public string ProjectId
         {
@@ -55,49 +47,12 @@ namespace NCoreUtils.Logging.Google
             }
         }
 
-        public string Output { get; set; } = StdOut;
-
-        public int BufferSize { get; set; } = DefaultBufferSize;
+        public string Output { get; set; } = DefaultByteSequenceOutput.StdOut;
 
         public CategoryHandling CategoryHandling { get; set; }
 
         public EventIdHandling EventIdHandling { get; set; }
 
         public TraceHandling TraceHandling { get; set; }
-
-        public ValueTask<Stream> CreateOutputStreamAsync(CancellationToken cancellationToken = default)
-        {
-            // special case -- stdout/stderr
-            if (StdOut == Output)
-            {
-                return new ValueTask<Stream>(Console.OpenStandardOutput(BufferSize));
-            }
-            if (StdErr == Output)
-            {
-                return new ValueTask<Stream>(Console.OpenStandardError(BufferSize));
-            }
-            if (!Uri.TryCreate(Output, UriKind.Absolute, out var uri))
-            {
-                throw new InvalidOperationException($"Invalid fluentd output URI: \"{Output}\".");
-            }
-            if (uri.Scheme == "file")
-            {
-                return new ValueTask<Stream>(new FileStream(uri.AbsolutePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, BufferSize, true));
-            }
-            if (uri.Scheme == "tcp")
-            {
-                if (!IPAddress.TryParse(uri.Host, out var ip))
-                {
-                    var hostEntry = Dns.GetHostEntry(uri.Host);
-                    if (hostEntry is null || hostEntry.AddressList.Length == 0)
-                    {
-                        throw new InvalidOperationException($"Could not resolve \"{uri.Host}\".");
-                    }
-                    ip = hostEntry.AddressList[0];
-                }
-                return new ValueTask<Stream>(new BufferedStream(new TcpStream(new System.Net.IPEndPoint(ip, uri.Port)), BufferSize));
-            }
-            throw new NotSupportedException($"Not supported fluentd output URI \"{Output}\".");
-        }
     }
 }

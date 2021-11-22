@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging.Internal
 {
     public abstract class GenericSinkBase<TPayload, TWriter> : ISink
         where TWriter : class, IPayloadWriter<TPayload>

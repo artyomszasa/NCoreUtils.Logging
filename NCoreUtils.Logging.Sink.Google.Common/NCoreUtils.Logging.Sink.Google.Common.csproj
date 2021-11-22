@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6;netstandard2.1</TargetFrameworks>
     <RootNamespace>NCoreUtils.Logging.Google</RootNamespace>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging.Sink.Google.Common</PackageId>
@@ -19,6 +19,6 @@
     <ProjectReference Include="..\NCoreUtils.Logging.Sink\NCoreUtils.Logging.Sink.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NCoreUtils.Extensions.Memory" Version="2.0.0" />
+    <PackageReference Include="NCoreUtils.Extensions.Memory" Version="3.0.0" />
   </ItemGroup>
 </Project>

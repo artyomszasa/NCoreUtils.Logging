@@ -37,10 +37,13 @@ namespace NCoreUtils.Logging.Internal
         {
             while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                while (buffer.Length > counter.Value && reader.TryRead(out T item))
+                while (buffer.Length > counter.Value && reader.TryRead(out var item))
                 {
-                    buffer[counter.Value] = item;
-                    counter.Increment();
+                    if (item is not null)
+                    {
+                        buffer[counter.Value] = item;
+                        counter.Increment();
+                    }
                 }
             }
         }
