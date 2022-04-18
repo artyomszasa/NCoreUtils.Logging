@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using NCoreUtils.Logging.Google.Data;
 
@@ -9,18 +10,77 @@ namespace NCoreUtils.Logging.Google
     {
         private static readonly WebContext _noWebContext = default;
 
-        private static readonly IReadOnlyDictionary<LogLevel, LogSeverity> _level2severity = new Dictionary<LogLevel, LogSeverity>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ref readonly WebContext GetWebContext(LogMessage message, out bool isRequestSummary)
         {
-            { LogLevel.Trace,       LogSeverity.Debug },
-            { LogLevel.Debug,       LogSeverity.Debug },
-            { LogLevel.Information, LogSeverity.Info },
-            { LogLevel.Warning,     LogSeverity.Warning },
-            { LogLevel.Error,       LogSeverity.Error },
-            { LogLevel.Critical,    LogSeverity.Critical }
-        };
+            if (message is WebLogMessage webMessage)
+            {
+                isRequestSummary = webMessage.IsRequestSummary;
+                return ref webMessage.Context;
+            }
+            isRequestSummary = false;
+            return ref _noWebContext;
+        }
 
-        protected static LogSeverity GetLogSeverity(LogLevel logLevel)
-            => _level2severity.TryGetValue(logLevel, out var severity) ? severity : LogSeverity.Default;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static HttpRequest CreateOrUpdateHttpRequest(
+            string requestMethod,
+            string requestUrl,
+            int status,
+            long? responseSize,
+            string userAgent,
+            string remoteIp,
+            string referer,
+            TimeSpan? latency)
+            => Pool.HttpRequest.TryRent(out var httpRequest)
+                ? httpRequest.Update(requestMethod, requestUrl, status, responseSize, userAgent, remoteIp, referer, latency)
+                : new(requestMethod, requestUrl, status, responseSize, userAgent, remoteIp, referer, latency);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ServiceContext CreateOrUpdateServiceContext(string service, string? version)
+            => Pool.ServiceContext.TryRent(out var serviceContext)
+                ? serviceContext.Update(service, version)
+                : new(service, version);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ErrorContext CreateOrUpdateErrorContext(
+            string method,
+            string url,
+            string userAgent,
+            string referer,
+            int responseStatusCode,
+            string remoteIp,
+            string user)
+            => Pool.ErrorContext.TryRent(out var errorContext)
+                ? errorContext.Update(method, url, userAgent, referer, responseStatusCode, remoteIp, user)
+                : new(method, url, userAgent, referer, responseStatusCode, remoteIp, user);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static LogEntry CreateOrUpdateLogEntry(
+            string logName,
+            LogSeverity severity,
+            string message,
+            DateTimeOffset timestamp,
+            ServiceContext? serviceContext,
+            ErrorContext? context,
+            HttpRequest? httpRequest,
+            string? trace,
+            IReadOnlyDictionary<string, string>? labels)
+            => Pool.LogEntry.TryRent(out var logEntry)
+                ? logEntry.Update(logName, severity, message, timestamp, serviceContext, context, httpRequest, trace, labels)
+                : new(logName, severity, message, timestamp, serviceContext, context, httpRequest, trace, labels);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static LogSeverity GetLogSeverity(LogLevel logLevel) => logLevel switch
+        {
+            LogLevel.Trace => LogSeverity.Debug,
+            LogLevel.Debug => LogSeverity.Debug,
+            LogLevel.Information => LogSeverity.Info,
+            LogLevel.Warning => LogSeverity.Warning,
+            LogLevel.Error => LogSeverity.Error,
+            LogLevel.Critical => LogSeverity.Critical,
+            _ => LogSeverity.Default
+        };
 
         public GoogleFluentdPayloadFactory(IGoogleFluentdSinkConfiguration configuration, IEnumerable<ILabelProvider> labelProviders)
             : base(configuration, labelProviders)
@@ -42,7 +102,7 @@ namespace NCoreUtils.Logging.Google
             ServiceContext? serviceContext = null;
             if (isRequestSummary)
             {
-                request = new HttpRequest(
+                request = CreateOrUpdateHttpRequest(
                     context.Method ?? string.Empty,
                     context.Url ?? string.Empty,
                     context.ResponseStatusCode ?? default,
@@ -55,7 +115,7 @@ namespace NCoreUtils.Logging.Google
             }
             if (exception != null)
             {
-                errorContext = new ErrorContext(
+                errorContext = CreateOrUpdateErrorContext(
                     context.Method ?? string.Empty,
                     context.Url ?? string.Empty,
                     context.UserAgent ?? string.Empty,
@@ -64,13 +124,13 @@ namespace NCoreUtils.Logging.Google
                     context.RemoteIp ?? string.Empty,
                     context.User ?? string.Empty
                 );
-                serviceContext = new ServiceContext(
+                serviceContext = CreateOrUpdateServiceContext(
                     Configuration.Service,
                     Configuration.ServiceVersion
                 );
             }
             var textPayload = CreateTextPayload(Configuration, eventId, category, formatter(state, exception), exception?.ToString());
-            var labels = new Dictionary<string, string>();
+            var labels = Pool.Labels.TryRent(out var labelDictionary) ? labelDictionary : new();
             if (Configuration.CategoryHandling == CategoryHandling.IncludeAsLabel)
             {
                 labels.Add("category", category);
@@ -79,7 +139,7 @@ namespace NCoreUtils.Logging.Google
             {
                 labelProvider.UpdateLabels(category, eventId, logLevel, in context, labels);
             }
-            return new LogEntry(
+            return CreateOrUpdateLogEntry(
                 logName: Configuration.LogName,
                 severity: GetLogSeverity(logLevel),
                 message: textPayload,
@@ -100,20 +160,7 @@ namespace NCoreUtils.Logging.Google
 
         public override LogEntry CreatePayload<TState>(LogMessage<TState> message)
         {
-            if (message is WebLogMessage<TState> webMessage)
-            {
-                return CreateLogEntry(
-                    webMessage.Timestamp,
-                    webMessage.Category,
-                    webMessage.LogLevel,
-                    webMessage.EventId,
-                    webMessage.Exception,
-                    webMessage.State,
-                    webMessage.Formatter,
-                    webMessage.Context,
-                    webMessage.IsRequestSummary
-                );
-            }
+            ref readonly WebContext context = ref GetWebContext(message, out var isRequestSummary);
             return CreateLogEntry(
                 message.Timestamp,
                 message.Category,
@@ -122,8 +169,8 @@ namespace NCoreUtils.Logging.Google
                 message.Exception,
                 message.State,
                 message.Formatter,
-                _noWebContext,
-                false
+                in context,
+                isRequestSummary
             );
         }
     }

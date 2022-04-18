@@ -13,10 +13,15 @@
     <!-- Compilation -->
     <OutputType>Library</OutputType>
     <DebugType>portable</DebugType>
+    <IsTrimmable>true</IsTrimmable>
+    <NoWarn Condition=" '$(TargetFramework)' == 'netstandard2.1' ">CS0436</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.Logging\NCoreUtils.Logging.csproj" />
     <ProjectReference Include="..\NCoreUtils.Logging.Sink.Google.Fluentd\NCoreUtils.Logging.Sink.Google.Fluentd.csproj" />
     <ProjectReference Include="..\NCoreUtils.Logging.Google.Common\NCoreUtils.Logging.Google.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.1' ">
+    <Compile Remove="CodeAnalysis\**" />
   </ItemGroup>
 </Project>

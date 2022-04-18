@@ -11,18 +11,18 @@ namespace NCoreUtils.Logging.Google
     {
         private static readonly WebContext _noWebContext = default;
 
-        private static readonly Dictionary<LogLevel, LogSeverity> _level2severity = new Dictionary<LogLevel, LogSeverity>
-        {
-            { LogLevel.Trace,       LogSeverity.Debug },
-            { LogLevel.Debug,       LogSeverity.Debug },
-            { LogLevel.Information, LogSeverity.Info },
-            { LogLevel.Warning,     LogSeverity.Warning },
-            { LogLevel.Error,       LogSeverity.Error },
-            { LogLevel.Critical,    LogSeverity.Critical }
-        };
-
         protected static LogSeverity GetLogSeverity(LogLevel logLevel)
-            => _level2severity.TryGetValue(logLevel, out var severity) ? severity : LogSeverity.Default;
+            => logLevel switch
+            {
+                LogLevel.Trace => LogSeverity.Debug,
+                LogLevel.Debug => LogSeverity.Debug,
+                LogLevel.Information => LogSeverity.Info,
+                LogLevel.Warning => LogSeverity.Warning,
+                LogLevel.Error => LogSeverity.Error,
+                LogLevel.Critical => LogSeverity.Critical,
+                _ => LogSeverity.Default
+            };
+
 
         public GoogleClientPayloadFactory(IGoogleClientSinkConfiguration configuration, IEnumerable<ILabelProvider> labelProviders)
             : base(configuration, labelProviders)
@@ -30,7 +30,7 @@ namespace NCoreUtils.Logging.Google
 
         public override LogEntry CreatePayload<TState>(LogMessage<TState> message)
         {
-            if (message is WebLogMessage<TState> webMessage)
+            if (message is WebLogMessage webMessage)
             {
                 return CreateLogEntry(
                     webMessage.Timestamp,

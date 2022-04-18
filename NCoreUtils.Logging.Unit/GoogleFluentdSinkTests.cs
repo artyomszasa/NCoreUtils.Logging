@@ -20,9 +20,9 @@ namespace NCoreUtils.Logging.Unit
     {
         private sealed class TcpReader : IDisposable
         {
-            private readonly StringBuilder _buffer = new StringBuilder();
+            private readonly StringBuilder _buffer = new();
 
-            private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellation = new();
 
             private readonly TcpListener _listener;
 
@@ -77,7 +77,7 @@ namespace NCoreUtils.Logging.Unit
             }
         }
 
-        public async Task AspNetCoreSimpleBase(bool prePopulateContext)
+        public static async Task AspNetCoreSimpleBase(bool prePopulateContext)
         {
             string output;
             {

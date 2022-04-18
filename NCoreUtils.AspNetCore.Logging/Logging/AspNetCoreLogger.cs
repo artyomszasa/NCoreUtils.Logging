@@ -105,12 +105,12 @@ namespace NCoreUtils.Logging
                 var ctx = GetCurrentAspNetCoreContext();
                 new HostingRequestFinishedLogWrapper(state).Apply(ref ctx);
                 evaluatedState = formatter(state, exception);
-                Provider.PushMessage(new WebLogMessage<string>(CategoryName, logLevel, eventId, exception, evaluatedState, _passString, ctx, true));
+                Provider.PushMessage(WebLogMessage.Initialize(CategoryName, logLevel, eventId, exception, evaluatedState, _passString, ctx, true));
             }
             else
             {
                 evaluatedState = formatter(state, exception);
-                Provider.PushMessage(new WebLogMessage<string>(CategoryName, logLevel, eventId, exception, evaluatedState, _passString, GetCurrentAspNetCoreContext(), false));
+                Provider.PushMessage(WebLogMessage.Initialize(CategoryName, logLevel, eventId, exception, evaluatedState, _passString, GetCurrentAspNetCoreContext(), false));
             }
         }
     }

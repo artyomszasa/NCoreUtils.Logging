@@ -93,11 +93,7 @@ namespace NCoreUtils.Logging
                 try
                 {
                     Payloads.CopyTo(package, 0);
-                    #if NETSTANDARD2_1
                     Payloads.Clear();
-                    #else
-                    while (Payloads.TryDequeue(out var _)) { }
-                    #endif
                     await Sink.WritePayloadsAsync(package.Take(count), cancellationToken);
                 }
                 finally

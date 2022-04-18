@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,26 @@ namespace NCoreUtils.Logging
 {
     public static class LoggingBuilderGoogleFluentdLoggingExtensions
     {
-        public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
+        private sealed class LoggerProviderInitializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>
+            where TLoggerProvider : LoggerProvider
+        {
+            public string OptionsName { get; }
+
+            public LoggerProviderInitializer(string optionsName)
+                => OptionsName = optionsName;
+
+            public ILoggerProvider Initialize(IServiceProvider serviceProvider)
+            {
+                var options = serviceProvider.GetRequiredService<IOptionsMonitor<GoogleFluentdSinkOptions>>().Get(OptionsName);
+                var output = serviceProvider.CreateByteSequenceOutput(options.Configuration.Output);
+                var payloadWriter = options.CreatePayloadWriter(serviceProvider, output);
+                var payloadFactory = options.CreatePayloadFactory(serviceProvider);
+                var sink = options.CreateSink(serviceProvider, payloadWriter, payloadFactory);
+                return ActivatorUtilities.CreateInstance<TLoggerProvider>(serviceProvider, sink);
+            }
+        }
+
+        public static ILoggingBuilder AddGoogleFluentd<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             string? name,
             IGoogleFluentdSinkConfiguration configuration,
@@ -22,23 +42,15 @@ namespace NCoreUtils.Logging
             var opts = builder.Services
                 .AddOptions<GoogleFluentdSinkOptions>(optionsName)
                 .Configure(o => o.Configuration = configuration);
-            if (!(configureOptions is null))
+            if (configureOptions is not null)
             {
                 opts.Configure(o => configureOptions(o));
             }
-            builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
-            {
-                var options = serviceProvider.GetRequiredService<IOptionsMonitor<GoogleFluentdSinkOptions>>().Get(optionsName);
-                var output = DefaultByteSequenceOutput.Create(options.Configuration.Output);
-                var payloadWriter = options.CreatePayloadWriter(serviceProvider, output);
-                var payloadFactory = options.CreatePayloadFactory(serviceProvider);
-                var sink = options.CreateSink(serviceProvider, payloadWriter, payloadFactory);
-                return ActivatorUtilities.CreateInstance<TLoggerProvider>(serviceProvider, sink);
-            });
+            builder.Services.AddSingleton(new LoggerProviderInitializer<TLoggerProvider>(optionsName).Initialize);
             return builder;
         }
 
-        public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
+        public static ILoggingBuilder AddGoogleFluentd<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             IGoogleFluentdSinkConfiguration configuration,
             Action<GoogleFluentdSinkOptions>? configureOptions = default)
@@ -51,7 +63,7 @@ namespace NCoreUtils.Logging
             Action<GoogleFluentdSinkOptions>? configureOptions = default)
             => builder.AddGoogleFluentd<LoggerProvider>(configuration, configureOptions);
 
-        public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
+        public static ILoggingBuilder AddGoogleFluentd<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             string? name,
             string output = DefaultByteSequenceOutput.StdOut,
@@ -82,7 +94,7 @@ namespace NCoreUtils.Logging
             return builder.AddGoogleFluentd<TLoggerProvider>(name, options, configureOptions);
         }
 
-        public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
+        public static ILoggingBuilder AddGoogleFluentd<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             string output = DefaultByteSequenceOutput.StdOut,
             string? projectId = default,
@@ -126,8 +138,11 @@ namespace NCoreUtils.Logging
                 configureOptions
             );
 
-
-        public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
+#if !NETSTANDARD2_1
+        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026",
+            Justification = "Enumerations are bound to the configuration type.")]
+#endif
+        public static ILoggingBuilder AddGoogleFluentd<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             string? name,
             IConfiguration configuration,
@@ -151,7 +166,7 @@ namespace NCoreUtils.Logging
             }, configureOptions);
         }
 
-        public static ILoggingBuilder AddGoogleFluentd<TLoggerProvider>(
+        public static ILoggingBuilder AddGoogleFluentd<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             IConfiguration configuration,
             Action<GoogleFluentdSinkOptions>? configureOptions = default)

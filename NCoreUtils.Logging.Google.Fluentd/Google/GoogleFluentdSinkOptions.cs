@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using NCoreUtils.Logging.Google.Internal;
 
@@ -9,10 +10,13 @@ namespace NCoreUtils.Logging.Google
     /// </summary>
     public class GoogleFluentdSinkOptions
     {
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         private Type _payloadFactoryType = typeof(GoogleFluentdPayloadFactory);
 
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         private Type _payloadWriterType = typeof(GoogleFluentdPayloadWriter);
 
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         private Type _sinkType = typeof(GoogleFluentdSink);
 
         public IGoogleFluentdSinkConfiguration Configuration { get; internal set; } = default!;
@@ -38,7 +42,8 @@ namespace NCoreUtils.Logging.Google
                     parameters
                 );
 
-        public GoogleFluentdSinkOptions OverridePayloadWriter(Type payloadWriterType)
+        public GoogleFluentdSinkOptions OverridePayloadWriter(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type payloadWriterType)
         {
             if (!typeof(GoogleFluentdPayloadWriter).IsAssignableFrom(payloadWriterType))
             {
@@ -48,11 +53,13 @@ namespace NCoreUtils.Logging.Google
             return this;
         }
 
-        public GoogleFluentdSinkOptions OverridePayloadWriter<TPayloadWriter>()
+        public GoogleFluentdSinkOptions OverridePayloadWriter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPayloadWriter>()
             where TPayloadWriter : GoogleFluentdPayloadWriter
             => OverridePayloadWriter(typeof(TPayloadWriter));
 
-        public GoogleFluentdSinkOptions OverridePayloadFactory(Type payloadFactoryType)
+        public GoogleFluentdSinkOptions OverridePayloadFactory(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+            Type payloadFactoryType)
         {
             if (!typeof(GoogleFluentdPayloadFactory).IsAssignableFrom(payloadFactoryType))
             {
@@ -62,11 +69,13 @@ namespace NCoreUtils.Logging.Google
             return this;
         }
 
-        public GoogleFluentdSinkOptions OverridePayloadFactory<TPayloadFactory>()
+        public GoogleFluentdSinkOptions OverridePayloadFactory<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPayloadFactory>()
             where TPayloadFactory : GoogleFluentdPayloadFactory
             => OverridePayloadFactory(typeof(TPayloadFactory));
 
-        public GoogleFluentdSinkOptions OverrideSink(Type sinkType)
+        public GoogleFluentdSinkOptions OverrideSink(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+            Type sinkType)
         {
             if (!typeof(GoogleFluentdSink).IsAssignableFrom(sinkType))
             {
@@ -76,7 +85,7 @@ namespace NCoreUtils.Logging.Google
             return this;
         }
 
-        public GoogleFluentdSinkOptions OverrideSink<TSink>()
+        public GoogleFluentdSinkOptions OverrideSink<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSink>()
             where TSink : GoogleFluentdSink
             => OverrideSink(typeof(TSink));
     }

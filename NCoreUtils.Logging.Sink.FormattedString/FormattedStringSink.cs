@@ -1,8 +1,8 @@
-using System.Buffers;
+using NCoreUtils.Logging.FormattedString.Internal;
 
 namespace NCoreUtils.Logging.FormattedString
 {
-    public class FormattedStringSink : GenericSink<(IMemoryOwner<byte> Owner, int Size)>
+    public class FormattedStringSink : GenericSink<InMemoryByteSequence>
     {
         public FormattedStringSink(
             FormattedStringPayloadWriter payloadWriter,

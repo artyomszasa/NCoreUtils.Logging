@@ -16,9 +16,9 @@ namespace NCoreUtils.Logging
             AllowSynchronousContinuations = false
         });
 
-        private readonly object _sync = new object();
+        private readonly object _sync = new();
 
-        private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellation = new();
 
         private readonly ISink _sink;
 
@@ -40,7 +40,7 @@ namespace NCoreUtils.Logging
             if (0 == Interlocked.CompareExchange(ref _isDisposed, 1, 0) && disposing)
             {
                 _queue.Writer.Complete();
-                if (!(_worker is null))
+                if (_worker is not null)
                 {
                     try
                     {
@@ -69,7 +69,7 @@ namespace NCoreUtils.Logging
             if (0 == Interlocked.CompareExchange(ref _isDisposed, 1, 0))
             {
                 _queue.Writer.Complete();
-                if (!(_worker is null))
+                if (_worker is not null)
                 {
                     await _worker.ConfigureAwait(false);
                 }
@@ -124,19 +124,17 @@ namespace NCoreUtils.Logging
                                 buffer[i].Enqueue(queue);
                             }
                             await queue.FlushAsync(CancellationToken.None).ConfigureAwait(false);
-                            #if NETSTANDARD2_1
-                            Array.Fill(buffer, default);
-                            #else
-                            for (var i = 0; i < buffer.Length; ++i)
+                            for (var i = 0; i < count; ++i)
                             {
+                                buffer[i].Dispose();
                                 buffer[i] = default!;
                             }
-                            #endif
                         }
                         else
                         {
                             // if the sink does not support queueing --> log it and keep waiting
                             await message.LogAsync(_sink, CancellationToken.None).ConfigureAwait(false);
+                            message.Dispose();
                         }
                     }
                 }
@@ -149,7 +147,7 @@ namespace NCoreUtils.Logging
         }
 
         protected virtual Logger DoCreateLogger(string categoryName)
-            => new Logger(this, categoryName);
+            => new(this, categoryName);
 
         public Logger CreateLogger(string categoryName)
         {

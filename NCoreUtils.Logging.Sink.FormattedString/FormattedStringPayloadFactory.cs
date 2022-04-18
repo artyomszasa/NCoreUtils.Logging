@@ -2,10 +2,11 @@ using System;
 using System.Buffers;
 using System.Text;
 using System.Threading.Tasks;
+using NCoreUtils.Logging.FormattedString.Internal;
 
 namespace NCoreUtils.Logging.FormattedString
 {
-    public class FormattedStringPayloadFactory : IPayloadFactory<(IMemoryOwner<byte> Owner, int Size)>
+    public class FormattedStringPayloadFactory : IPayloadFactory<InMemoryByteSequence>
     {
         // structure: {timestamp} [{category}] {request summary}? {message}{\n exn}?
 
@@ -30,7 +31,7 @@ namespace NCoreUtils.Logging.FormattedString
             Encoding.GetBytes(buffer, destination);
         }
 
-        public (IMemoryOwner<byte>, int) CreatePayload<TState>(LogMessage<TState> message)
+        public InMemoryByteSequence CreatePayload<TState>(LogMessage<TState> message)
         {
             // evaluate message if not evaluated yet....
             var textMessage = message.Formatter(message.State, message.Exception);
@@ -78,12 +79,28 @@ namespace NCoreUtils.Logging.FormattedString
                 NewLine.AsSpan().CopyTo(payloadSpan[written..]);
                 written += NewLine.Length;
             }
-            return (payload, payloadSize);
+            return new(payload, payloadSize);
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore();
+
+            Dispose(disposing: false);
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+            GC.SuppressFinalize(this);
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
+        }
+
+        protected virtual void Dispose(bool disposing) { /* noop */ }
+
+        protected virtual ValueTask DisposeAsyncCore()
             => default;
     }
 }

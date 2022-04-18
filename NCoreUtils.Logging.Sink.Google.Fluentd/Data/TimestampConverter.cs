@@ -26,7 +26,7 @@ namespace NCoreUtils.Logging.Google.Data
 
         public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var proxy = JsonSerializer.Deserialize<Proxy>(ref reader, options);
+            var proxy = JsonSerializer.Deserialize(ref reader, TimestampProxyJsonContext.Default.Proxy);
             if (proxy is null)
             {
                 throw new JsonException("Unable to deserialize timestamp.");

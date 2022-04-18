@@ -10,14 +10,7 @@ namespace NCoreUtils.Logging.Google
 {
     public class GoogleClientPayloadWriter : IBulkPayloadWriter<LogEntry>
     {
-        protected static bool TryAsRcpException(
-            Exception exn,
-            #if NETSTANDARD2_1
-            [NotNullWhen(true)] out RpcException? rpcExn
-            #else
-            out RpcException rpcExn
-            #endif
-            )
+        protected static bool TryAsRcpException(Exception exn, [NotNullWhen(true)] out RpcException? rpcExn)
         {
             var processed = new HashSet<Exception>(ByReferenceEqualityComparer<Exception>.Instance);
             Exception? e = exn;
@@ -28,6 +21,10 @@ namespace NCoreUtils.Logging.Google
                     rpcExn = r;
                     return true;
                 }
+                if (!processed.Add(e))
+                {
+                    break;
+                }
                 if (e is AggregateException ae && ae.InnerExceptions.Count == 1)
                 {
                     e = ae.InnerExceptions[0];
@@ -37,11 +34,7 @@ namespace NCoreUtils.Logging.Google
                     e = e.InnerException;
                 }
             }
-            #if NETSTANDARD2_1
             rpcExn = default;
-            #else
-            rpcExn = default!;
-            #endif
             return false;
         }
 
@@ -71,11 +64,6 @@ namespace NCoreUtils.Logging.Google
             }
         }
 
-        public void Dispose() { }
-
-        public ValueTask DisposeAsync()
-            => default;
-
         public ValueTask WritePayloadAsync(LogEntry payload, CancellationToken cancellationToken = default)
             => WritePayloadsAsync(new [] { payload }, cancellationToken);
 
@@ -92,5 +80,26 @@ namespace NCoreUtils.Logging.Google
                 Console.Error.WriteLine(rpcExn);
             }
         }
+
+        #region disposable
+
+        protected virtual void Dispose(bool disposing) { /* noop */ }
+
+        protected virtual ValueTask DisposeAsyncCore() => default;
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore();
+            Dispose(disposing: false);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

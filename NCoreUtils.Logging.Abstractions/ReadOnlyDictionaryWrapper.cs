@@ -9,11 +9,11 @@ namespace NCoreUtils.Logging
     {
         public static ReadOnlyDictionaryWrapper<TKey, TValue> WrapMutable<TKey, TValue>(IDictionary<TKey, TValue> data)
             where TKey : notnull
-            => new ReadOnlyDictionaryWrapper<TKey, TValue>(data, default);
+            => new(data, default);
 
         public static ReadOnlyDictionaryWrapper<TKey, TValue> WrapReadOnly<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> data)
             where TKey : notnull
-            => new ReadOnlyDictionaryWrapper<TKey, TValue>(default, data);
+            => new(default, data);
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ namespace NCoreUtils.Logging
 
         public bool ContainsKey(TKey key)
             => _rwData is null
-                ? !(_roData is null) && _roData.ContainsKey(key)
+                ? _roData is not null && _roData.ContainsKey(key)
                 : _rwData.ContainsKey(key);
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
@@ -76,14 +76,11 @@ namespace NCoreUtils.Logging
                     : _roData.GetEnumerator()
                 : _rwData.GetEnumerator();
 
-        public bool TryGetValue(
-            TKey key,
-            #if NETSTANDARD2_1
-            [NotNullWhen(true)] out TValue value
-            #else
-            out TValue value
-            #endif
-            )
+#if NETSTANDARD2_1
+        public bool TryGetValue(TKey key, out TValue value)
+#else
+        public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+#endif
         {
             if (_rwData is null)
             {

@@ -81,7 +81,27 @@ namespace NCoreUtils.Logging.Internal
                 throw new ObjectDisposedException(this.GetType().Name);
             }
             var payload = CreatePayload(message);
+            if (payload is IDisposable payloadDisposer)
+            {
+                return WriteAndDisposePayloadAsync(this, payload, payloadDisposer, cancellationToken);
+            }
             return WritePayloadAsync(payload, cancellationToken);
+
+            static async ValueTask WriteAndDisposePayloadAsync(
+                GenericSinkBase<TPayload, TWriter> self,
+                TPayload payload,
+                IDisposable payloadDisposer,
+                CancellationToken cancellationToken)
+            {
+                try
+                {
+                    await self.WritePayloadAsync(payload, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    payloadDisposer.Dispose();
+                }
+            }
         }
 
         #endregion

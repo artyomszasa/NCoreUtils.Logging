@@ -14,7 +14,7 @@ namespace NCoreUtils.Logging.Internal
                 return false;
             }
             var svc = serviceProvider.GetService(typeof(T));
-            if (!(svc is null))
+            if (svc is not null)
             {
                 service = (T)svc;
                 return true;

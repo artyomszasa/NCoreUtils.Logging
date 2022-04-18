@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -79,6 +80,11 @@ namespace NCoreUtils.Logging
                 traceHandling
             );
 
+#if !NETSTANDARD2_1
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(Dictionary<string, string>))]
+        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026",
+            Justification = "Dictionary is preserved explicitly, enumerations are bound to the configuration type.")]
+#endif
         public static ILoggingBuilder AddGoogleClient<TLoggerProvider>(
             this ILoggingBuilder builder,
             IConfiguration configuration)

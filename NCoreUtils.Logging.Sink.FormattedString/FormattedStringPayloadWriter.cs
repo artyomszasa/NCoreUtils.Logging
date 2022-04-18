@@ -1,33 +1,39 @@
 using System;
-using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
+using NCoreUtils.Logging.FormattedString.Internal;
 
 namespace NCoreUtils.Logging.FormattedString
 {
-    public class FormattedStringPayloadWriter : IPayloadWriter<(IMemoryOwner<byte> Owner, int Size)>
+    public class FormattedStringPayloadWriter : IPayloadAsByteSequenceWriter<InMemoryByteSequence>
     {
-        private IOutputStreamWrapper Output { get; }
+        public IByteSequenceOutput Output { get; }
 
-        public FormattedStringPayloadWriter(IOutputStreamWrapper output)
+        public FormattedStringPayloadWriter(IByteSequenceOutput output)
             => Output = output ?? throw new ArgumentNullException(nameof(output));
 
-        public async ValueTask WritePayloadAsync((IMemoryOwner<byte> Owner, int Size) payload, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                await Output.WriteAsync(payload.Owner.Memory[..payload.Size], cancellationToken);
-            }
-            finally
-            {
-                payload.Owner.Dispose();
-            }
-        }
+        public ValueTask<IByteSequence> CreateByteSequenceAsync(InMemoryByteSequence payload, CancellationToken cancellationToken = default)
+            => new(payload);
+
+        #region disposable
+
+        protected virtual void Dispose(bool disposing) { /* noop */ }
+
+        protected virtual ValueTask DisposeAsyncCore() => default;
 
         public void Dispose()
-            => Output.Dispose();
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
 
-        public ValueTask DisposeAsync()
-            => Output.DisposeAsync();
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore();
+            Dispose(disposing: false);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

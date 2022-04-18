@@ -66,17 +66,5 @@ namespace NCoreUtils.Logging.Google
         }
 
         #endregion
-
-        // public virtual async ValueTask WritePayloadAsync(LogEntry payload, CancellationToken cancellationToken = default)
-        // {
-        //     var stream = await OpenOutputStreamAsync(cancellationToken);
-        //     await JsonSerializer.SerializeAsync(stream, payload, Configuration.JsonSerializerOptions, cancellationToken);
-        //     #if NETSTANDARD2_1
-        //     await stream.WriteAsync(_eol.AsMemory(), CancellationToken.None);
-        //     #else
-        //     await stream.WriteAsync(_eol, 0, _eol.Length, CancellationToken.None);
-        //     #endif
-        //     await stream.FlushAsync(CancellationToken.None);
-        // }
     }
 }

@@ -15,7 +15,7 @@ namespace NCoreUtils.Logging.Unit
 {
     public class GoogleSinkTests
     {
-        public async Task AspNetCoreSimpleBase(bool prePopulateContext)
+        public static async Task AspNetCoreSimpleBase(bool prePopulateContext)
         {
             var client = FakeGoogleLoggingClient.Create();
             var json = Encoding.ASCII.GetBytes(@"{

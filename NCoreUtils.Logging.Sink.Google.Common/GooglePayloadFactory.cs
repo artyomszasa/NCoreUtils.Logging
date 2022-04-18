@@ -55,11 +55,7 @@ namespace NCoreUtils.Logging.Google
             total += message.Length;
             if (!string.IsNullOrEmpty(exception))
             {
-                #if NETSTANDARD2_1
                 total += Environment.NewLine.Length + exception.Length;
-                #else
-                total += Environment.NewLine.Length + exception!.Length;
-                #endif
             }
             return total;
         }
@@ -84,11 +80,7 @@ namespace NCoreUtils.Logging.Google
             if (!string.IsNullOrEmpty(exception))
             {
                 builder.Append(Environment.NewLine);
-                #if NETSTANDARD2_1
                 builder.Append(exception);
-                #else
-                builder.Append(exception!);
-                #endif
             }
             return builder.ToString();
         }
@@ -111,9 +103,25 @@ namespace NCoreUtils.Logging.Google
             return payload;
         }
 
-        public void Dispose() { }
+        #region disposable
 
-        public ValueTask DisposeAsync()
-            => default;
+        protected virtual void Dispose(bool disposing) { /* noop */ }
+
+        protected virtual ValueTask DisposeAsyncCore() => default;
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore();
+            Dispose(disposing: false);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }
