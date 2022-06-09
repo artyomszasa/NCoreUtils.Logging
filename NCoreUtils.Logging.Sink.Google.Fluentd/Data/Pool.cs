@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using NCoreUtils.Logging.Internal;
 
 namespace NCoreUtils.Logging.Google.Data;
 

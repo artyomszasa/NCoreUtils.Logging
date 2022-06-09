@@ -22,4 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(FxNugetVersion)" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(FxNugetVersion)" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NCoreUtils.Extensions.Memory.Pooling" Version="3.0.0" />
+  </ItemGroup>
 </Project>

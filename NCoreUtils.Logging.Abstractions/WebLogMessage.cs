@@ -1,6 +1,5 @@
 using System;
 using Microsoft.Extensions.Logging;
-using NCoreUtils.Logging.Internal;
 
 namespace NCoreUtils.Logging
 {

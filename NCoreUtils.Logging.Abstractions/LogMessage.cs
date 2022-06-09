@@ -27,6 +27,7 @@ namespace NCoreUtils.Logging
 
         protected LogMessage Update(string category, LogLevel logLevel, EventId eventId, Exception? exception)
         {
+            Timestamp = DateTimeOffset.UtcNow;
             Category = category;
             LogLevel = logLevel;
             EventId = eventId;
