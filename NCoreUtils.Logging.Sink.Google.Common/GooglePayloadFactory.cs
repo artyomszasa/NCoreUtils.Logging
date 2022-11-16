@@ -12,12 +12,27 @@ namespace NCoreUtils.Logging.Google
     {
         private const int MaxCharStackAllocSize = 8 * 1024;
 
-        // TODO: optimize
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetStringifiedLength(int value)
         {
+            if (value == int.MinValue)
+            {
+                return 11;
+            }
             var isSigned = value < 0 ? 1 : 0;
-            return (int)Math.Floor(Math.Log10(Math.Abs(value))) + 1 + isSigned;
+            return isSigned + (Math.Abs(value) switch
+            {
+                <10 => 1,
+                <100 => 2,
+                <1_000 => 3,
+                <10_000 => 4,
+                <100_000 => 5,
+                <1_000_000 => 6,
+                <10_000_000 => 7,
+                <100_000_000 => 8,
+                <1_000_000_000 => 9,
+                _ => 10
+            });
         }
 
         protected TConfiguration Configuration { get; }
@@ -55,7 +70,7 @@ namespace NCoreUtils.Logging.Google
             total += message.Length;
             if (!string.IsNullOrEmpty(exception))
             {
-                total += Environment.NewLine.Length + exception.Length;
+                total += Environment.NewLine.Length + exception!.Length;
             }
             return total;
         }
@@ -80,7 +95,7 @@ namespace NCoreUtils.Logging.Google
             if (!string.IsNullOrEmpty(exception))
             {
                 builder.Append(Environment.NewLine);
-                builder.Append(exception);
+                builder.Append(exception!);
             }
             return builder.ToString();
         }

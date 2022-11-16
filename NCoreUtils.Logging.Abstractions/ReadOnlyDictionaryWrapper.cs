@@ -76,7 +76,7 @@ namespace NCoreUtils.Logging
                     : _roData.GetEnumerator()
                 : _rwData.GetEnumerator();
 
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1 || NETSTANDARD2_0
         public bool TryGetValue(TKey key, out TValue value)
 #else
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)

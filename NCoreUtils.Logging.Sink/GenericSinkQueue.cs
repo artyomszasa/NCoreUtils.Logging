@@ -92,8 +92,15 @@ namespace NCoreUtils.Logging
                 var package = ArrayPool<TPayload>.Shared.Rent(count);
                 try
                 {
+#if NETSTANDARD2_0
+                    for (var i = 0; i < count && Payloads.TryDequeue(out var item); ++i)
+                    {
+                        package[i] = item;
+                    }
+#else
                     Payloads.CopyTo(package, 0);
                     Payloads.Clear();
+#endif
                     await Sink.WritePayloadsAsync(package.Take(count), cancellationToken);
                 }
                 finally

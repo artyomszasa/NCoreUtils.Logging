@@ -2,7 +2,7 @@
   <PropertyGroup>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>6.0.0-alpha05</Version>
+    <Version>6.0.0-alpha09</Version>
     <FxNugetVersion>6.0.0</FxNugetVersion>
     <Fx3NugetVersion>3.1.16</Fx3NugetVersion>
     <GrpcCoreVersion>2.41.1</GrpcCoreVersion>

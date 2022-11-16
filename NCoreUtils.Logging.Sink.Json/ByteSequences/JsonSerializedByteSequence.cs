@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NCoreUtils.Logging.ByteSequences
 {
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1 || NETSTANDARD2_0
     public class JsonSerializedByteSequence<T>
 #else
     public class JsonSerializedByteSequence<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>

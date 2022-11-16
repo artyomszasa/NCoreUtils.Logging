@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
     <RootNamespace>NCoreUtils.Logging</RootNamespace>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging</PackageId>
@@ -14,16 +14,26 @@
     <OutputType>Library</OutputType>
     <DebugType>portable</DebugType>
   </PropertyGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
+  </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(Fx3NugetVersion)" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net6' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(FxNugetVersion)" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
     <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.Logging.Abstractions\NCoreUtils.Logging.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <Compile Remove="LoggerProvider.Channels.cs" />
+    <Compile Remove="Internal\ChannelReaderExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
+    <Compile Remove="LoggerProvider.BlockingCollection.cs" />
   </ItemGroup>
 </Project>

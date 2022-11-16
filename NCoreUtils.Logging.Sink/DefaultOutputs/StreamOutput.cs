@@ -52,7 +52,14 @@ namespace NCoreUtils.Logging.DefaultOutputs
         }
 
         protected virtual ValueTask DisposeAsyncCore()
+#if NETSTANDARD2_0
+        {
+            _stream?.Dispose();
+            return default;
+        }
+#else
             => _stream?.DisposeAsync() ?? default;
+#endif
 
         #endregion
     }

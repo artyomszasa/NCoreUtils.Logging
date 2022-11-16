@@ -12,6 +12,8 @@ namespace NCoreUtils.Logging
         public DefaultTraceIdProvider(IHttpContextAccessor? httpContextAccessor = default)
             => _httpContextAccessor = httpContextAccessor;
 
+        public bool SuppressOutOfContextWarning { get; set; }
+
         public string TraceId
         {
             get
@@ -19,7 +21,10 @@ namespace NCoreUtils.Logging
                 var httpContext = _httpContextAccessor?.HttpContext;
                 if (httpContext is null)
                 {
-                    Console.Error.WriteLine("Default trace id provider is used out-of ASP.NET Core request context.");
+                    if (!SuppressOutOfContextWarning)
+                    {
+                        Console.Error.WriteLine("Default trace id provider is used out-of ASP.NET Core request context.");
+                    }
                     return NextId();
                 }
                 if (httpContext.Items.TryGetValue(HttpContextItemIds.TraceId, out var boxedId))

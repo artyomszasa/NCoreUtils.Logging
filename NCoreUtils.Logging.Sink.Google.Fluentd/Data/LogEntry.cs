@@ -23,9 +23,11 @@ namespace NCoreUtils.Logging.Google.Data
         public DateTimeOffset Timestamp { get; private set; }
 
         [JsonPropertyName("serviceContext")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ServiceContext? ServiceContext { get; private set; }
 
         [JsonPropertyName("context")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ErrorContext? Context { get; private set; }
 
         [JsonPropertyName("httpRequest")]

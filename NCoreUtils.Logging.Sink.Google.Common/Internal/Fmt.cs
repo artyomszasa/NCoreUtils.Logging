@@ -14,7 +14,7 @@ namespace NCoreUtils.Logging.Google.Internal
                 builder.Append(projectId);
                 builder.Append("/logs/");
                 builder.Append(logId);
-                return new string(buffer[..builder.Length]);
+                return builder.ToString();
             }
             return $"projects/{projectId}/logs/{logId}";
         }
@@ -29,7 +29,7 @@ namespace NCoreUtils.Logging.Google.Internal
                 builder.Append(projectId);
                 builder.Append("/traces/");
                 builder.Append(traceId);
-                return new string(buffer[..builder.Length]);
+                return builder.ToString();
             }
             return $"projects/{projectId}/traces/{traceId}";
         }

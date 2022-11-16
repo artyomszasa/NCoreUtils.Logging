@@ -1,21 +1,12 @@
 using System;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NCoreUtils.Logging.Internal;
 
 namespace NCoreUtils.Logging
 {
-    public class LoggerProvider : ILoggerProvider, IDisposable, IAsyncDisposable
+    public partial class LoggerProvider : ILoggerProvider, IDisposable, IAsyncDisposable
     {
-        private readonly Channel<LogMessage> _queue = Channel.CreateUnbounded<LogMessage>(new UnboundedChannelOptions
-        {
-            SingleReader = true,
-            SingleWriter = false,
-            AllowSynchronousContinuations = false
-        });
-
         private readonly object _sync = new();
 
         private readonly CancellationTokenSource _cancellation = new();
@@ -39,7 +30,7 @@ namespace NCoreUtils.Logging
             // NOTE: no unmanaged disposables
             if (0 == Interlocked.CompareExchange(ref _isDisposed, 1, 0) && disposing)
             {
-                _queue.Writer.Complete();
+                CompleteQueue();
                 if (_worker is not null)
                 {
                     try
@@ -68,7 +59,7 @@ namespace NCoreUtils.Logging
         {
             if (0 == Interlocked.CompareExchange(ref _isDisposed, 1, 0))
             {
-                _queue.Writer.Complete();
+                CompleteQueue();
                 if (_worker is not null)
                 {
                     await _worker.ConfigureAwait(false);
@@ -106,7 +97,7 @@ namespace NCoreUtils.Logging
         {
             try
             {
-                var reader = _queue.Reader;
+                var reader = GetQueueReader();
                 var buffer = new LogMessage[20];
                 // initially we wait for the first item to become available.
                 while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
@@ -157,7 +148,7 @@ namespace NCoreUtils.Logging
 
         public virtual void PushMessage(LogMessage message)
         {
-            var task = _queue.Writer.WriteAsync(message, _cancellation.Token);
+            var task = PushToQueueAsync(message, _cancellation.Token);
             if (!task.IsCompletedSuccessfully)
             {
                 task.AsTask().Wait(_cancellation.Token);

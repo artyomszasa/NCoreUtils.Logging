@@ -13,6 +13,7 @@ namespace NCoreUtils.Logging
             CancellationToken cancellationToken = default
         );
 
+#if !NETSTANDARD2_0
         async ValueTask IPayloadWriter<TPayload>.WritePayloadAsync(
             TPayload payload,
             CancellationToken cancellationToken)
@@ -21,5 +22,6 @@ namespace NCoreUtils.Logging
                 .ConfigureAwait(false);
             await sequence.WriteToAsync(Output, cancellationToken).ConfigureAwait(false);
         }
+#endif
     }
 }

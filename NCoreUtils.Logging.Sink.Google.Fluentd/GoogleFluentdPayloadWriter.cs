@@ -66,5 +66,16 @@ namespace NCoreUtils.Logging.Google
         }
 
         #endregion
+
+#if NETSTANDARD2_0
+        async ValueTask IPayloadWriter<LogEntry>.WritePayloadAsync(
+            LogEntry payload,
+            CancellationToken cancellationToken)
+        {
+            using var sequence = await CreateByteSequenceAsync(payload, cancellationToken)
+                .ConfigureAwait(false);
+            await sequence.WriteToAsync(Output, cancellationToken).ConfigureAwait(false);
+        }
+#endif
     }
 }

@@ -10,7 +10,7 @@ namespace NCoreUtils.Logging
 {
     public static class LoggingBuilderGoogleClientLoggingExtensions
     {
-        public static ILoggingBuilder AddGoogleClient<TLoggerProvider>(
+        public static ILoggingBuilder AddGoogleClient<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             IGoogleClientSinkConfiguration configuration)
             where TLoggerProvider : LoggerProvider
@@ -28,7 +28,7 @@ namespace NCoreUtils.Logging
         public static ILoggingBuilder AddGoogleClient(this ILoggingBuilder builder, IGoogleClientSinkConfiguration options)
             => builder.AddGoogleClient<LoggerProvider>(options);
 
-        public static ILoggingBuilder AddGoogleClient<TLoggerProvider>(
+        public static ILoggingBuilder AddGoogleClient<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             string? projectId = default,
             string? service = default,
@@ -80,12 +80,10 @@ namespace NCoreUtils.Logging
                 traceHandling
             );
 
-#if !NETSTANDARD2_1
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(Dictionary<string, string>))]
         [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026",
             Justification = "Dictionary is preserved explicitly, enumerations are bound to the configuration type.")]
-#endif
-        public static ILoggingBuilder AddGoogleClient<TLoggerProvider>(
+        public static ILoggingBuilder AddGoogleClient<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             IConfiguration configuration)
             where TLoggerProvider : LoggerProvider

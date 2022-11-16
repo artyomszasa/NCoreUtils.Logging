@@ -15,6 +15,7 @@ namespace NCoreUtils.Logging.Google.Data
         public int Status { get; private set; }
 
         [JsonPropertyName("responseSize")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public long? ResponseSize { get; private set; }
 
         [JsonPropertyName("userAgent")]

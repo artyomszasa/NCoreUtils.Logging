@@ -37,7 +37,11 @@ namespace NCoreUtils.Logging.Internal
         public override void Write(byte[] buffer, int offset, int count)
             => WriteAsync(buffer, offset, count).GetAwaiter().GetResult();
 
-        public override void Write(ReadOnlySpan<byte> buffer)
+        public
+#if !NETSTANDARD2_0
+        override
+#endif
+        void Write(ReadOnlySpan<byte> buffer)
         {
             var array = ArrayPool<byte>.Shared.Rent(buffer.Length);
             try
@@ -54,7 +58,11 @@ namespace NCoreUtils.Logging.Internal
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             => WriteAsync(buffer.AsMemory().Slice(offset, count), cancellationToken).AsTask();
 
-        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        public
+#if !NETSTANDARD2_0
+        override
+#endif
+        ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
             => Output.WriteAsync(buffer, cancellationToken);
     }
 }

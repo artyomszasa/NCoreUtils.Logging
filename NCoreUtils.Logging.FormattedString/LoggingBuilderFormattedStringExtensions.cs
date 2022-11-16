@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NCoreUtils.Logging.FormattedString;
@@ -6,7 +7,7 @@ namespace NCoreUtils.Logging
 {
     public static class LoggingBuilderFormattedStringExtensions
     {
-        public static ILoggingBuilder AddFormattedString<TLoggerProvider>(this ILoggingBuilder builder, string nameOrUri)
+        public static ILoggingBuilder AddFormattedString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(this ILoggingBuilder builder, string nameOrUri)
             where TLoggerProvider : LoggerProvider
         {
             builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
