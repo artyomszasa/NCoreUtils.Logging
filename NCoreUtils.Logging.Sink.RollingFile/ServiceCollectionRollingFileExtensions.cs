@@ -6,7 +6,9 @@ namespace NCoreUtils.Logging
 {
     public static class ServiceCollectionRollingFileExtensions
     {
-        public static IServiceCollection AddRollingFileLogging<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TFileRoller>(this IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Transient)
+        public static IServiceCollection AddRollingFileLogging<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TFileRoller>(
+            this IServiceCollection services,
+            ServiceLifetime lifetime = ServiceLifetime.Transient)
             where TFileRoller : IFileRoller
         {
             services.Add(ServiceDescriptor.Describe(typeof(IFileRoller), typeof(TFileRoller), lifetime));

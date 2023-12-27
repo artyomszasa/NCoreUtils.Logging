@@ -79,7 +79,7 @@ namespace NCoreUtils.Logging.FormattedString
                 NewLine.AsSpan().CopyTo(payloadSpan[written..]);
                 written += NewLine.Length;
             }
-            return new(payload, payloadSize);
+            return new(payload, written);
         }
 
         public void Dispose()

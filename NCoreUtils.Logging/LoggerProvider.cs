@@ -62,10 +62,10 @@ namespace NCoreUtils.Logging
                 CompleteQueue();
                 if (_worker is not null)
                 {
-                    await _worker.ConfigureAwait(false);
+                    await _worker;
                 }
                 _cancellation.Cancel();
-                await _sink.DisposeAsync().ConfigureAwait(false);
+                await _sink.DisposeAsync();
                 _cancellation.Dispose();
             }
         }
@@ -134,6 +134,11 @@ namespace NCoreUtils.Logging
             catch (OperationCanceledException)
             {
                 Console.WriteLine("Logger worker has been cancelled.");
+            }
+            catch (Exception exn)
+            {
+                Console.WriteLine($"Logger worker has exited due to exception: {exn}");
+                throw;
             }
         }
 

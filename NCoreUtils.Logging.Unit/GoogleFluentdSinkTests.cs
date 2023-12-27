@@ -139,7 +139,9 @@ namespace NCoreUtils.Logging.Unit
                 output = tcpReader.Complete();
             }
             var serializerOptions = Google.Data.LogEntryJsonContext.Default.Options;
+#pragma warning disable IL2026
             var entries = JsonSerializer.Deserialize<List<Google.Data.LogEntry>>("[" + output.Replace("}\n", "},\n").TrimEnd('\n', '\r', ',') + "]", serializerOptions)!;
+#pragma warning restore IL2026
             Assert.Equal(4, entries.Count);
             Assert.Equal(2, entries.Count(e => e.Message == "message"));
         }

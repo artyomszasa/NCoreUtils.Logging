@@ -157,12 +157,12 @@ namespace NCoreUtils.Logging
             return builder.AddGoogleFluentd<TLoggerProvider>(name, new GoogleFluentdSinkConfiguration
             {
                 Output = configuration["Output"] ?? DefaultByteSequenceOutput.StdOut,
-                CategoryHandling = configuration.GetValue<CategoryHandling?>("CategoryHandling") ?? CategoryHandling.IncludeAsLabel,
-                EventIdHandling = configuration.GetValue<EventIdHandling?>("EventIdHandling") ?? EventIdHandling.Ignore,
+                CategoryHandling = configuration.GetCategoryHandlingOrNull("CategoryHandling") ?? CategoryHandling.IncludeAsLabel,
+                EventIdHandling = configuration.GetEventIdHandlingOrNull("EventIdHandling") ?? EventIdHandling.Ignore,
                 ProjectId = context.ProjectId,
                 Service = context.Service,
                 ServiceVersion = context.ServiceVersion,
-                TraceHandling = configuration.GetValue<TraceHandling?>("TraceHandling") ?? TraceHandling.Summary
+                TraceHandling = configuration.GetTraceHandlingOrNull("TraceHandling") ?? TraceHandling.Summary
             }, configureOptions);
         }
 

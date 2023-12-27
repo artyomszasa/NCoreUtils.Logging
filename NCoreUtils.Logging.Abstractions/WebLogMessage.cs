@@ -20,9 +20,11 @@ namespace NCoreUtils.Logging
                 ? msg.Update(category, logLevel, eventId, exception, state, formatter, in context, isRequestSummary)
                 : new(category, logLevel, eventId, exception, state, formatter, in context, isRequestSummary);
 
+#if DEBUG
         private static int _cc;
 
         private static int _up;
+#endif
 
         private WebContext _context;
 
@@ -41,7 +43,9 @@ namespace NCoreUtils.Logging
             bool isRequestSummary)
             : base(category, logLevel, eventId, exception, state, formatter)
         {
+#if DEBUG
             System.Threading.Interlocked.Increment(ref _cc);
+#endif
             _context = context;
             IsRequestSummary = isRequestSummary;
         }
@@ -56,16 +60,21 @@ namespace NCoreUtils.Logging
             in WebContext context,
             bool isRequestSummary)
         {
+#if DEBUG
             System.Threading.Interlocked.Increment(ref _up);
-            base.Update(category, logLevel, eventId, exception, state, formatter);
+#endif
+            // NOTE: base call
+            Update(category, logLevel, eventId, exception, state, formatter);
             _context = context;
             IsRequestSummary = isRequestSummary;
             return this;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
+#if DEBUG
             System.Threading.Interlocked.Decrement(ref _up);
+#endif
             Pool.Return(this);
         }
     }

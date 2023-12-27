@@ -10,6 +10,16 @@ namespace NCoreUtils.Logging
 {
     public static class LoggingBuilderGoogleClientLoggingExtensions
     {
+        private static Dictionary<string, string> GetDictionaryOfStringAndString(this IConfiguration configuration)
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var (key, value) in configuration.AsEnumerable(makePathsRelative: true))
+            {
+                result.Add(key, value ?? string.Empty);
+            }
+            return result;
+        }
+
         public static ILoggingBuilder AddGoogleClient<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(
             this ILoggingBuilder builder,
             IGoogleClientSinkConfiguration configuration)
@@ -93,17 +103,17 @@ namespace NCoreUtils.Logging
                 configuration["Service"],
                 configuration["ServiceVersion"],
                 configuration["ResourceType"],
-                configuration.GetSection("ResourceLabels").Get<Dictionary<string, string>>()
+                configuration.GetSection("ResourceLabels").GetDictionaryOfStringAndString()
             );
             return builder.AddGoogleClient<TLoggerProvider>(new GoogleClientSinkConfiguration
             {
-                CategoryHandling = configuration.GetValue<CategoryHandling?>("CategoryHandling") ?? CategoryHandling.IncludeAsLabel,
-                EventIdHandling = configuration.GetValue<EventIdHandling?>("EventIdHandling") ?? EventIdHandling.Ignore,
+                CategoryHandling = configuration.GetCategoryHandlingOrNull("CategoryHandling") ?? CategoryHandling.IncludeAsLabel,
+                EventIdHandling = configuration.GetEventIdHandlingOrNull("EventIdHandling") ?? EventIdHandling.Ignore,
                 ProjectId = context.ProjectId,
                 Resource = context.Resource,
                 Service = context.Service,
                 ServiceVersion = context.ServiceVersion,
-                TraceHandling = configuration.GetValue<TraceHandling?>("TraceHandling") ?? TraceHandling.Summary
+                TraceHandling = configuration.GetTraceHandlingOrNull("TraceHandling") ?? TraceHandling.Summary
             });
         }
 

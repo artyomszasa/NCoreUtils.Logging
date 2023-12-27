@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Google.Api;
-using Google.Api.Gax;
+using Google.Api.Gax.STJ;
 
 namespace NCoreUtils.Logging.Google.Internal
 {

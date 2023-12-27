@@ -2,9 +2,13 @@
   <PropertyGroup>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>6.0.0-alpha09</Version>
-    <FxNugetVersion>6.0.0</FxNugetVersion>
+    <Version>7.0.0-rc01</Version>
+    <Fx7NugetVersion>7.0.0</Fx7NugetVersion>
+    <Fx6NugetVersion>6.0.0</Fx6NugetVersion>
     <Fx3NugetVersion>3.1.16</Fx3NugetVersion>
+    <FxNugetVersion Condition=" '$(TargetFramework)' == 'net7.0' ">$(Fx7NugetVersion)</FxNugetVersion>
+    <FxNugetVersion Condition=" '$(TargetFramework)' == 'net6.0' ">$(Fx6NugetVersion)</FxNugetVersion>
+    <FxNugetVersion Condition=" '$(TargetFramework)' != 'net6.0' AND '$(TargetFramework)' != 'net7.0' ">$(Fx3NugetVersion)</FxNugetVersion>
     <GrpcCoreVersion>2.41.1</GrpcCoreVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Artyom Antyipin</Authors>
@@ -14,5 +18,8 @@
     <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
   </PropertyGroup>
 </Project>

@@ -12,7 +12,7 @@ namespace NCoreUtils.Logging.RollingFile
 
         public FileNameDecomposition FileName { get; }
 
-        public DateTime Timestamp { get; }
+        public DateOnly Timestamp { get; }
 
         public int Suffix { get; }
 
@@ -37,13 +37,13 @@ namespace NCoreUtils.Logging.RollingFile
             }
         }
 
-        DateTime? IFormattedPath.Timestamp => throw new NotImplementedException();
+        DateOnly? IFormattedPath.Timestamp => Timestamp;
 
         public DefaultFormattedPath(
             string noSuffixFormat,
             string withSuffixFormat,
             in FileNameDecomposition fileName,
-            DateTime timestamp,
+            DateOnly timestamp,
             int suffix = 0)
         {
             NoSuffixFormat = noSuffixFormat;

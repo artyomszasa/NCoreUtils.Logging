@@ -8,7 +8,7 @@ namespace NCoreUtils.Logging.RollingFile
     {
         IFileRollerOptions Options { get; }
 
-        bool ShouldRoll(FileNameDecomposition basePath, DateTime? timestamp, long size);
+        bool ShouldRoll(FileNameDecomposition basePath, DateOnly? timestamp, long size);
 
         ValueTask<IFormattedPath> RollAsync(FileNameDecomposition basePath, IFormattedPath? lastPath, CancellationToken cancellationToken = default);
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Google.Api;
 using Google.Api.Gax;
 using Google.Api.Gax.Grpc;
@@ -17,7 +18,13 @@ namespace NCoreUtils.Logging.Google.Internal
             bool preferConfig = false)
         {
             var p = new Lazy<Platform>(() => Platform.Instance(), false);
-            var context = GoogleLoggingInitialization.InitializeGoogleLoggingContext(p, inputProjectId, inputService, inputServiceVersion, preferConfig);
+            var context = GoogleLoggingInitialization.InitializeGoogleLoggingContext(
+                // FIXME: this should work as a workaround due to definition equality, yet better solution is required
+                Unsafe.As<Lazy<global::Google.Api.Gax.STJ.Platform>>(p),
+                inputProjectId,
+                inputService,
+                inputServiceVersion,
+                preferConfig);
             MonitoredResource resource;
             if (preferConfig)
             {

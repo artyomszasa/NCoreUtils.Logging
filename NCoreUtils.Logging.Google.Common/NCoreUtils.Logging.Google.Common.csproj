@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
     <RootNamespace>NCoreUtils.Logging.Google.Internal</RootNamespace>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging.Google.Common</PackageId>
@@ -17,17 +17,12 @@
   <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
     <Compile Remove="CodeAnalysis\**" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.2.0" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(Fx3NugetVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(FxNugetVersion)" />
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.Logging.Sink.Google.Common\NCoreUtils.Logging.Sink.Google.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Api.CommonProtos" Version="2.4.0" />
-    <PackageReference Include="Google.Api.Gax" Version="3.5.0" />
+    <PackageReference Include="Google.Api.Gax.STJ" Version="4.4.0" />
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.10.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(FxNugetVersion)" />
   </ItemGroup>
 </Project>

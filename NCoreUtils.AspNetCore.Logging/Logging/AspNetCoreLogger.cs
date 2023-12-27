@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -8,7 +7,7 @@ namespace NCoreUtils.Logging
 {
     public class AspNetCoreLogger : Logger
     {
-        private ref struct HostingRequestFinishedLogWrapper
+        private readonly ref struct HostingRequestFinishedLogWrapper
         {
             readonly IReadOnlyList<KeyValuePair<string, object>> _source;
 

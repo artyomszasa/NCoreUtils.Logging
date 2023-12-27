@@ -9,11 +9,12 @@ namespace NCoreUtils.Logging.RollingFile
     {
         private const int BufferSize = 32 * 1024;
 
-        private static DateTime Today()
-        {
-            var now = DateTime.Now;
-            return new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Unspecified);
-        }
+        private const IO.Compression.CompressionLevel CompressionLevel =
+#if NETSTANDARD2_1
+            IO.Compression.CompressionLevel.Optimal;
+#else
+            IO.Compression.CompressionLevel.SmallestSize;
+#endif
 
         private static IO.FileStream OpenRead(string path)
             => new(
@@ -35,10 +36,23 @@ namespace NCoreUtils.Logging.RollingFile
                 true
             );
 
+        private static async Task CompressAsync(string sourcePath, string targetPath, CancellationToken cancellationToken)
+        {
+            await using var sourceStream = OpenRead(sourcePath);
+            await using var targetStream = OpenWrite(targetPath);
+            await using var gzStream = new IO.Compression.GZipStream(targetStream, CompressionLevel);
+            await sourceStream.CopyToAsync(gzStream, BufferSize, cancellationToken).ConfigureAwait(false);
+        }
+
+        public IDateProvider DateProvider { get; }
+
         public IFileRollerOptions Options { get; }
 
-        public DefaultFileRoller(IFileRollerOptions? options = default)
-            => Options = options ?? new DefaultFileRollerOptions();
+        public DefaultFileRoller(IDateProvider dateProvider, IFileRollerOptions? options = default)
+        {
+            DateProvider = dateProvider ?? throw new ArgumentNullException(nameof(dateProvider));
+            Options = options ?? new DefaultFileRollerOptions();
+        }
 
         private async ValueTask DoRollAsync(IFormattedPath path, CancellationToken cancellationToken)
         {
@@ -56,36 +70,58 @@ namespace NCoreUtils.Logging.RollingFile
             {
                 pathToRoll = (path, false, path.Path);
             }
-            var targetPath = pathToRoll.FormattedPath.WithSuffix(pathToRoll.FormattedPath.Suffix + 1);
-            await DoRollAsync(targetPath, cancellationToken);
-            if (!pathToRoll.Compressed && Options.CompressRolled)
+            if (Options.MaxFileSize > 0L)
             {
-                var target = targetPath.Path + ".gz";
-                await using var sourceStream = OpenRead(pathToRoll.Path);
-                await using var targetStream = OpenWrite(target);
-                var compressionLevel =
-#if NETSTANDARD2_1
-                    IO.Compression.CompressionLevel.Optimal;
-#else
-                    IO.Compression.CompressionLevel.SmallestSize;
-#endif
-                await using var gzStream = new IO.Compression.GZipStream(targetStream, compressionLevel);
+                // rolling suffixed files
+                try
+                {
+                    var targetPath = pathToRoll.FormattedPath.WithSuffix(pathToRoll.FormattedPath.Suffix + 1);
+                    await DoRollAsync(targetPath, cancellationToken);
+                    if (!pathToRoll.Compressed && Options.CompressRolled)
+                    {
+                        var target = targetPath.Path + ".gz";
+                        await CompressAsync(pathToRoll.Path, target, CancellationToken.None).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        var target = pathToRoll.Compressed ? targetPath.Path + ".gz" : targetPath.Path;
+                        await using var sourceStream = OpenRead(pathToRoll.Path);
+                        await using var targetStream = OpenWrite(target);
+                        await sourceStream.CopyToAsync(targetStream, BufferSize, cancellationToken);
+                    }
+                    IO.File.Delete(pathToRoll.Path);
+                }
+                catch (Exception exn)
+                {
+                    Console.Error.WriteLine($"Failed to roll \"{pathToRoll.Path}\".");
+                    Console.Error.WriteLine(exn);
+                }
             }
             else
             {
-                var target = pathToRoll.Compressed ? targetPath.Path + ".gz" : targetPath.Path;
-                await using var sourceStream = OpenRead(pathToRoll.Path);
-                await using var targetStream = OpenWrite(target);
-                await sourceStream.CopyToAsync(targetStream, BufferSize, cancellationToken);
+                // rolling by date only
+                if (!pathToRoll.Compressed && Options.CompressRolled)
+                {
+                    try
+                    {
+                        var targetPath = pathToRoll.Path + ".gz";
+                        await CompressAsync(pathToRoll.Path, targetPath, CancellationToken.None).ConfigureAwait(false);
+                        IO.File.Delete(pathToRoll.Path);
+                    }
+                    catch (Exception exn)
+                    {
+                        Console.Error.WriteLine($"Failed to compress \"{pathToRoll.Path}\".");
+                        Console.Error.WriteLine(exn);
+                    }
+                }
             }
-            IO.File.Delete(pathToRoll.Path);
         }
 
-        public bool ShouldRoll(FileNameDecomposition basePath, DateTime? timestamp, long size)
+        public bool ShouldRoll(FileNameDecomposition basePath, DateOnly? date, long size)
         {
-            if (timestamp.HasValue && Options.Triggers.HasFlag(FileRollTrigger.Date))
+            if (date is DateOnly dateValue && Options.Triggers.HasFlag(FileRollTrigger.Date))
             {
-                if (Today() != timestamp.Value.Date)
+                if (DateProvider.CurrentDate != dateValue)
                 {
                     return true;
                 }
@@ -102,15 +138,14 @@ namespace NCoreUtils.Logging.RollingFile
 
         public async ValueTask<IFormattedPath> RollAsync(FileNameDecomposition basePath, IFormattedPath? lastPath, CancellationToken cancellationToken = default)
         {
-            // if last path is provided it must be rolled withput condition
+            // if last path is provided it must be rolled without condition
             if (lastPath is not null)
             {
                 await DoRollAsync(lastPath, cancellationToken);
             }
             // initializing
-            var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
-            var candidate = Options.FileNameFormatter(basePath, now, 0);
-            var finfo = new System.IO.FileInfo(candidate.Path);
+            var candidate = Options.FileNameFormatter(basePath, DateProvider.CurrentDate, 0);
+            var finfo = new IO.FileInfo(candidate.Path);
             if (finfo.Exists && Options.Triggers.HasFlag(FileRollTrigger.Size) && Options.MaxFileSize > 0 && finfo.Length < Options.MaxFileSize)
             {
                 // if file exists and size restrictions are provided and size restrictions are not met --> roll file

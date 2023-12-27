@@ -48,6 +48,13 @@ namespace NCoreUtils.Logging.RollingFile
             return parameters;
         }
 
+        private IDateProvider DateProvider { get; }
+
+        public RollingByteSequenceOutputFactory(IDateProvider? dateProvider = null)
+        {
+            DateProvider = dateProvider ?? DefaultDateProvider.Singleton;
+        }
+
         protected virtual IFileRollerOptions ReadOptions(IReadOnlyDictionary<string, string?> raw)
         {
             var options = new DefaultFileRollerOptions();
@@ -71,7 +78,7 @@ namespace NCoreUtils.Logging.RollingFile
         }
 
         protected virtual IFileRoller CreateRoller(IFileRollerOptions options)
-            => new DefaultFileRoller(options);
+            => new DefaultFileRoller(DateProvider, options);
 
         public bool TryCreate(string uriOrName, [MaybeNullWhen(false)] out IByteSequenceOutput output)
         {

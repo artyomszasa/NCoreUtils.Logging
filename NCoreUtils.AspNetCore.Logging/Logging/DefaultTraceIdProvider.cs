@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 
 namespace NCoreUtils.Logging
@@ -31,11 +33,23 @@ namespace NCoreUtils.Logging
                 {
                     return boxedId as string ?? NextId();
                 }
-                var traceId = httpContext.Request.Headers.TryGetValue("X-Trace-Id", out var values) && values.Count > 0
-                    ? values[0]
+                var traceId = httpContext.Request.Headers.TryGetValue("X-Trace-Id", out var values) && values.Count > 0 && IsNotNullOrEmpty(values[0], out var value)
+                    ? value
                     : NextId();
                 httpContext.Items[HttpContextItemIds.TraceId] = traceId;
                 return traceId;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                static bool IsNotNullOrEmpty(string? input, [MaybeNullWhen(false)] out string output)
+                {
+                    if (string.IsNullOrEmpty(input))
+                    {
+                        output = default;
+                        return false;
+                    }
+                    output = input;
+                    return true;
+                }
             }
         }
     }

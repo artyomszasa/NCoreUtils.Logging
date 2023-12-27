@@ -39,7 +39,13 @@ namespace NCoreUtils.Logging
 
         public abstract void Enqueue(ISinkQueue queue);
 
-        public virtual void Dispose() { /* noop */ }
+        protected virtual void Dispose(bool disposing) { /* noop */ }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(disposing: true);
+        }
     }
 
     public class LogMessage<TState> : LogMessage

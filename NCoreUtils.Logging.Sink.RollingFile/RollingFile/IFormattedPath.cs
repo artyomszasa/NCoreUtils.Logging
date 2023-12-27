@@ -6,7 +6,7 @@ namespace NCoreUtils.Logging.RollingFile
     {
         string Path { get; }
 
-        DateTime? Timestamp { get; }
+        DateOnly? Timestamp { get; }
 
         int Suffix { get; }
 

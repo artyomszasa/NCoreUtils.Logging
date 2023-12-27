@@ -19,7 +19,7 @@ namespace NCoreUtils.Logging
     /// <summary>
     /// NUll-safe readonly dictionary wrapper.
     /// </summary>
-    public struct ReadOnlyDictionaryWrapper<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
+    public readonly struct ReadOnlyDictionaryWrapper<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
         where TKey : notnull
     {
         private readonly IDictionary<TKey, TValue>? _rwData;

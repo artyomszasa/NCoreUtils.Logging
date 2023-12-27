@@ -9,9 +9,9 @@ namespace NCoreUtils.Logging;
 
 public partial class LoggerProvider
 {
-    private struct QueueReader
+    private readonly struct QueueReader
     {
-        private ChannelReader<LogMessage> _reader;
+        private readonly ChannelReader<LogMessage> _reader;
 
         public QueueReader(ChannelReader<LogMessage> reader)
             => _reader = reader;
@@ -46,5 +46,5 @@ public partial class LoggerProvider
         => _queue.Writer.WriteAsync(message, cancellationToken);
 
     private QueueReader GetQueueReader()
-        => new QueueReader(_queue.Reader);
+        => new(_queue.Reader);
 }
