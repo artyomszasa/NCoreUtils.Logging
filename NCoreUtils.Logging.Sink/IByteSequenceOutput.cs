@@ -8,7 +8,7 @@ namespace NCoreUtils.Logging
     public interface IByteSequenceOutput : IAsyncDisposable, IDisposable
     {
         Stream GetStream()
-#if NETSTANDARD2_0
+#if NETFRAMEWORK
             ;
 #else
             => new Internal.ByteSequenceOutputStream(this);

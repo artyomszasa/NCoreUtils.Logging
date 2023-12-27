@@ -1,7 +1,6 @@
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging;
+
+public interface IBulkSink : ISink
 {
-    public interface IBulkSink : ISink
-    {
-        ISinkQueue CreateQueue();
-    }
+    ISinkQueue CreateQueue();
 }

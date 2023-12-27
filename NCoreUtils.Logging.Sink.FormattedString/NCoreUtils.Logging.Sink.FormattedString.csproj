@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net6.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1;net48</TargetFrameworks>
     <RootNamespace>NCoreUtils.Logging.FormattedString</RootNamespace>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging.Sink.FormattedString</PackageId>
@@ -16,5 +16,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.Logging.Sink\NCoreUtils.Logging.Sink.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+    <Compile Include="..\Shared\Ranges\*.cs" />
+    <Compile Include="..\Shared\Text\*.cs" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using NCoreUtils.Logging.FormattedString.Internal;
@@ -26,9 +27,14 @@ namespace NCoreUtils.Logging.FormattedString
 
         private static void WriteTimestamp(Span<byte> destination, in DateTimeOffset timestamp)
         {
-            Span<char> buffer = stackalloc char[23];
-            timestamp.TryFormat(buffer, out var _, TimestampFormat);
+#if NETFRAMEWORK
+            var buffer = timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture);
             Encoding.GetBytes(buffer, destination);
+#else
+            Span<char> buffer = stackalloc char[23];
+            timestamp.TryFormat(buffer, out var _, TimestampFormat, CultureInfo.InvariantCulture);
+            Encoding.GetBytes(buffer, destination);
+#endif
         }
 
         public InMemoryByteSequence CreatePayload<TState>(LogMessage<TState> message)

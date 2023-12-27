@@ -1,41 +1,34 @@
 using System;
 using System.Threading;
 
-namespace NCoreUtils.Logging.Internal
+namespace NCoreUtils.Logging.Internal;
+
+internal class LoggerScope(Logger logger, int index) : IDisposable
 {
-    internal class LoggerScope : IDisposable
+    private readonly Logger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+    private readonly int _index = index;
+
+    private int _isDisposed;
+
+    public void Dispose()
     {
-        private readonly Logger _logger;
-
-        private readonly int _index;
-
-        private int _isDisposed;
-
-        public LoggerScope(Logger logger, int index)
+        if (0 == Interlocked.CompareExchange(ref _isDisposed, 1, 0))
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _index = index;
-        }
-
-        public void Dispose()
-        {
-            if (0 == Interlocked.CompareExchange(ref _isDisposed, 1, 0))
+            bool success;
+            do
             {
-                bool success;
-                do
+                var stack = _logger._stack.Root;
+                if (Scope.Count(stack) >= _index)
                 {
-                    var stack = _logger._stack.Root;
-                    if (Scope.Count(stack) >= _index)
-                    {
-                        success = ReferenceEquals(stack, _logger._stack.CompareExchange(Scope.Truncate(stack, _index), stack));
-                    }
-                    else
-                    {
-                        success = true;
-                    }
+                    success = ReferenceEquals(stack, _logger._stack.CompareExchange(Scope.Truncate(stack, _index), stack));
                 }
-                while (!success);
+                else
+                {
+                    success = true;
+                }
             }
+            while (!success);
         }
     }
 }

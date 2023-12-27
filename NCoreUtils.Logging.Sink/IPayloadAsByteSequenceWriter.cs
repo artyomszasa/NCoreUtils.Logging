@@ -13,7 +13,7 @@ namespace NCoreUtils.Logging
             CancellationToken cancellationToken = default
         );
 
-#if !NETSTANDARD2_0
+#if !NETFRAMEWORK
         async ValueTask IPayloadWriter<TPayload>.WritePayloadAsync(
             TPayload payload,
             CancellationToken cancellationToken)

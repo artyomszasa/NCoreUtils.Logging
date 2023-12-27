@@ -1,14 +1,16 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>7.0.0-rc01</Version>
+    <Version>8.0.0</Version>
+    <Fx8NugetVersion>8.0.0</Fx8NugetVersion>
     <Fx7NugetVersion>7.0.0</Fx7NugetVersion>
     <Fx6NugetVersion>6.0.0</Fx6NugetVersion>
     <Fx3NugetVersion>3.1.16</Fx3NugetVersion>
+    <FxNugetVersion Condition=" '$(TargetFramework)' == 'net8.0' ">$(Fx8NugetVersion)</FxNugetVersion>
     <FxNugetVersion Condition=" '$(TargetFramework)' == 'net7.0' ">$(Fx7NugetVersion)</FxNugetVersion>
     <FxNugetVersion Condition=" '$(TargetFramework)' == 'net6.0' ">$(Fx6NugetVersion)</FxNugetVersion>
-    <FxNugetVersion Condition=" '$(TargetFramework)' != 'net6.0' AND '$(TargetFramework)' != 'net7.0' ">$(Fx3NugetVersion)</FxNugetVersion>
+    <FxNugetVersion Condition=" '$(TargetFramework)' != 'net6.0' AND '$(TargetFramework)' != 'net7.0' AND '$(TargetFramework)' != 'net8.0' ">$(Fx3NugetVersion)</FxNugetVersion>
     <GrpcCoreVersion>2.41.1</GrpcCoreVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Artyom Antyipin</Authors>
@@ -18,8 +20,6 @@
     <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsTrimmable>true</IsTrimmable>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
-    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 </Project>

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1;net48</TargetFrameworks>
     <RootNamespace>NCoreUtils.Logging</RootNamespace>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging.Abstractions</PackageId>
@@ -18,21 +18,17 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(FxNugetVersion)" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(FxNugetVersion)" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
-    <Compile Remove="CodeAnalysis\MaybeNullWhen.cs" />
-    <Compile Remove="CodeAnalysis\NotNullWhen.cs" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+    <Compile Include="..\Shared\Nullable\*.cs" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' And '$(TargetFramework)' != 'netstandard2.1' ">
-    <Compile Remove="CodeAnalysis\DynamicallyAccessedMembersAttribute.cs" />
-    <Compile Remove="CodeAnalysis\DynamicDependencyAttribute.cs" />
-    <Compile Remove="CodeAnalysis\DynamicallyAccessedMemberTypes.cs" />
-    <Compile Remove="CodeAnalysis\UnconditionalSuppressMessageAttribute.cs" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' Or '$(TargetFramework)' == 'netstandard2.1' ">
+    <Compile Include="..\Shared\Trimming\*.cs" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NCoreUtils.Extensions.Memory.Pooling" Version="3.0.0.2" />
+    <PackageReference Include="NCoreUtils.Extensions.Memory.Pooling" Version="4.0.2" />
   </ItemGroup>
 </Project>

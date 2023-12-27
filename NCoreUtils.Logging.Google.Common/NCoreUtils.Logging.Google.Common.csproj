@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1;net48</TargetFrameworks>
     <RootNamespace>NCoreUtils.Logging.Google.Internal</RootNamespace>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging.Google.Common</PackageId>
@@ -14,8 +14,8 @@
     <OutputType>Library</OutputType>
     <DebugType>portable</DebugType>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
-    <Compile Remove="CodeAnalysis\**" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+    <Compile Include="..\Shared\Nullable\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.Logging.Sink.Google.Common\NCoreUtils.Logging.Sink.Google.Common.csproj" />

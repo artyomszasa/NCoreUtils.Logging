@@ -7,21 +7,15 @@ namespace NCoreUtils.Logging.RollingFile;
 
 public class RollingByteSequenceOutput : IByteSequenceOutput
 {
-    private sealed class Target : IAsyncDisposable, IDisposable
+    private sealed class Target(IFormattedPath path) : IAsyncDisposable, IDisposable
     {
-        public IO.Stream Stream { get; }
+        public IO.Stream Stream { get; } = new IO.FileStream(path.Path, IO.FileMode.Append, IO.FileAccess.Write, IO.FileShare.ReadWrite, 8 * 1024, true);
 
-        public IFormattedPath Path { get; }
+        public IFormattedPath Path { get; } = path;
 
         public long Length => Stream.Length;
 
         public DateOnly? Timestamp => Path.Timestamp;
-
-        public Target(IFormattedPath path)
-        {
-            Stream = new IO.FileStream(path.Path, IO.FileMode.Append, IO.FileAccess.Write, IO.FileShare.ReadWrite, 8 * 1024, true);
-            Path = path;
-        }
 
         public ValueTask DisposeAsync()
             => Stream.DisposeAsync();
@@ -68,6 +62,12 @@ public class RollingByteSequenceOutput : IByteSequenceOutput
         Roller = roller ?? throw new ArgumentNullException(nameof(roller));
         TargetPathDecomposition = new FileNameDecomposition(path);
     }
+
+
+#if NETFRAMEWORK
+    IO.Stream IByteSequenceOutput.GetStream()
+            => new Internal.ByteSequenceOutputStream(this);
+#endif
 
     public async ValueTask WriteAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
     {

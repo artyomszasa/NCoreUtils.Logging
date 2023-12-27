@@ -7,9 +7,9 @@ namespace NCoreUtils.Logging.Google.Data;
 
 public class TimestampConverter : JsonConverter<DateTimeOffset>
 {
-    private static readonly byte[] binSeconds = new byte[] { 115, 101, 99, 111, 110, 100, 115 };
+    private static readonly byte[] binSeconds = "seconds"u8.ToArray();
 
-    private static readonly byte[] binNanos = new byte[] { 110, 97, 110, 111, 115 };
+    private static readonly byte[] binNanos = "nanos"u8.ToArray();
 
     private static readonly JsonEncodedText jsonSeconds = JsonEncodedText.Encode("seconds");
 
@@ -37,10 +37,10 @@ public class TimestampConverter : JsonConverter<DateTimeOffset>
         long? nanos = default;
         while (reader.TokenType != JsonTokenType.EndObject)
         {
-            if (!reader.Read())
-            {
-                throw new JsonException($"Unexpected end of JSON stream while deserializing Timestamp.");
-            }
+            // if (!reader.Read())
+            // {
+            //     throw new JsonException($"Unexpected end of JSON stream while deserializing Timestamp.");
+            // }
             if (reader.TokenType != JsonTokenType.PropertyName)
             {
                 throw new JsonException($"Expected {JsonTokenType.PropertyName} found {reader.TokenType} while deserializing Timestamp.");

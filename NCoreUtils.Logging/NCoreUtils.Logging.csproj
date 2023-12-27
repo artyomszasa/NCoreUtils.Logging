@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1;net48</TargetFrameworks>
     <RootNamespace>NCoreUtils.Logging</RootNamespace>
     <!-- NuGet -->
     <PackageId>NCoreUtils.Logging</PackageId>
@@ -17,17 +17,18 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(FxNugetVersion)" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
-    <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
+    <Compile Remove="LoggerProvider.Channels.cs" />
+    <Compile Remove="Internal\ChannelReaderExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.1' ">
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <Compile Remove="LoggerProvider.BlockingCollection.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.Logging.Abstractions\NCoreUtils.Logging.Abstractions.csproj" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <Compile Remove="LoggerProvider.Channels.cs" />
-    <Compile Remove="Internal\ChannelReaderExtensions.cs" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
-    <Compile Remove="LoggerProvider.BlockingCollection.cs" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+    <Compile Include="..\Shared\Nullable\*.cs" />
   </ItemGroup>
 </Project>
