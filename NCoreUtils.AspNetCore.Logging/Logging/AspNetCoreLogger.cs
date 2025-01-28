@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -39,7 +40,11 @@ namespace NCoreUtils.Logging
             }
         }
 
+
+
         private static readonly Func<string, Exception?, string> _passString = (s, _) => s;
+
+
 
         private static TService? GetServiceSafe<TService>(IServiceProvider? serviceProvider)
             where TService : class
@@ -53,9 +58,14 @@ namespace NCoreUtils.Logging
 
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AspNetCoreLogger(LoggerProvider provider, string categoryName, IHttpContextAccessor httpContextAccessor)
+        public new AspNetCoreLoggerProvider Provider { get; }
+
+        public AspNetCoreLogger(AspNetCoreLoggerProvider provider, string categoryName, IHttpContextAccessor httpContextAccessor)
             : base(provider, categoryName)
-            => _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+        {
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+            Provider = provider;
+        }
 
         private WebContext GetCurrentAspNetCoreContext()
         {
@@ -72,14 +82,14 @@ namespace NCoreUtils.Logging
                     lock (httpContext)
                     {
                         var ctx = new WebContext();
-                        LoggingContext.PopulateContext(ref ctx, httpContext);
+                        LoggingContext.PopulateContext(ref ctx, httpContext, Provider.ExternalScopeProvider);
                         return ctx;
                     }
                 }
                 // Current user and response code may have changed during the execution, try update
                 try
                 {
-                    loggingContext.UpdateFrom(httpContext);
+                    loggingContext.UpdateFrom(httpContext, Provider.ExternalScopeProvider);
                 }
                 catch { }
                 return loggingContext.WebContext;

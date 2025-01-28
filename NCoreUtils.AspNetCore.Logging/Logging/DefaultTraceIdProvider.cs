@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +34,14 @@ namespace NCoreUtils.Logging
                 {
                     return boxedId as string ?? NextId();
                 }
-                var traceId = httpContext.Request.Headers.TryGetValue("X-Trace-Id", out var values) && values.Count > 0 && IsNotNullOrEmpty(values[0], out var value)
+                string traceId;
+                if (Activity.Current?.TraceId is ActivityTraceId activityTraceId && activityTraceId != default)
+                {
+                    traceId = activityTraceId.ToHexString();
+                    httpContext.Items[HttpContextItemIds.TraceId] = traceId;
+                    return traceId;
+                }
+                traceId = httpContext.Request.Headers.TryGetValue("X-Trace-Id", out var values) && values.Count > 0 && IsNotNullOrEmpty(values[0], out var value)
                     ? value
                     : NextId();
                 httpContext.Items[HttpContextItemIds.TraceId] = traceId;

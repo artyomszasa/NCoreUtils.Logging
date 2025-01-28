@@ -28,7 +28,7 @@ namespace NCoreUtils.Logging
                     }
                     throw new InvalidOperationException("No logging context found. Add logging context using services.AddLoggingContext().");
                 }
-                loggingContext.PopulateFrom(httpContext);
+                loggingContext.PopulateFrom(httpContext, default);
 #if NET6_0_OR_GREATER
                 return next(httpContext);
 #else

@@ -1,15 +1,32 @@
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Logging;
 using NCoreUtils.Logging.Internal;
 
 namespace NCoreUtils.Logging;
 
 public class LoggingContext
 {
+    private sealed class TraceIdBox
+    {
+        public string? TraceId { get; set; }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TraceIdBox Reset()
+        {
+            TraceId = default;
+            return this;
+        }
+
+        public override string ToString()
+            => TraceId ?? string.Empty;
+    }
+
+    private static FixSizePool<TraceIdBox> TraceIdBoxPool { get; } = new(256);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetEffectiveHost(in HostString host) => host.HasValue switch
     {
@@ -41,22 +58,63 @@ public class LoggingContext
     private static string? GetUser(ClaimsPrincipal? principal)
         => principal?.Identity?.Name;
 
+    private static bool TryUpdateTraceIdFromExternalScopes(ref WebContext context, IExternalScopeProvider? externalScopeProvider)
+    {
+        if (externalScopeProvider is null)
+        {
+            return false;
+        }
+        var box = TraceIdBoxPool.TryRent(out var instance) ? instance : new();
+        try
+        {
+            externalScopeProvider.ForEachScope(static (scope, box) =>
+            {
+                if (scope is IReadOnlyList<KeyValuePair<string, object?>> list)
+                {
+                    foreach (var (k, v) in list)
+                    {
+                        if (k == "TraceId" && v is not null)
+                        {
+                            box.TraceId = (string)v;
+                        }
+                    }
+                }
+            }, box);
+            if (!string.IsNullOrEmpty(box.TraceId))
+            {
+                context.TraceId = box.TraceId;
+                return true;
+            }
+            return false;
+        }
+        finally
+        {
+            TraceIdBoxPool.Return(box.Reset());
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void UpdateContext(ref WebContext context, HttpContext? httpContext)
+    private static void UpdateContext(ref WebContext context, HttpContext? httpContext, IExternalScopeProvider? externalScopeProvider)
     {
         if (httpContext is null)
         {
+            TryUpdateTraceIdFromExternalScopes(ref context, externalScopeProvider);
             return;
         }
-        // Trace ID -- may be generated during the request
-        if (httpContext.RequestServices.TryGetOptionalService(out ITraceIdProvider? traceIdProvider))
+        // Trace ID
+        if (!TryUpdateTraceIdFromExternalScopes(ref context, externalScopeProvider))
         {
-            context.TraceId = traceIdProvider.TraceId;
-        }
-        // id request scope has been disposed trace id may have been written into HttpContext.Items
-        else if (httpContext.Items.TryGetValue(HttpContextItemIds.TraceId, out var boxedTraceId) && boxedTraceId is string traceId)
-        {
-            context.TraceId = traceId;
+            // TODO: may be deprecated as external scope provider is used instead?
+            // may be generated during the request
+            if (httpContext.RequestServices.TryGetOptionalService(out ITraceIdProvider? traceIdProvider))
+            {
+                context.TraceId = traceIdProvider.TraceId;
+            }
+            // id request scope has been disposed trace id may have been written into HttpContext.Items
+            else if (httpContext.Items.TryGetValue(HttpContextItemIds.TraceId, out var boxedTraceId) && boxedTraceId is string traceId)
+            {
+                context.TraceId = traceId;
+            }
         }
         // User
         context.User = GetUser(httpContext.User);
@@ -65,7 +123,7 @@ public class LoggingContext
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void PopulateContext(ref WebContext context, HttpContext? httpContext)
+    internal static void PopulateContext(ref WebContext context, HttpContext? httpContext, IExternalScopeProvider? externalScopeProvider)
     {
         if (httpContext is null)
         {
@@ -99,7 +157,7 @@ public class LoggingContext
         // RemoteIp
         context.RemoteIp = httpContext.Connection?.RemoteIpAddress?.ToString();
         // User and ResponseStatusCode
-        UpdateContext(ref context, httpContext);
+        UpdateContext(ref context, httpContext, externalScopeProvider);
     }
 
     private WebContext _webContext;
@@ -110,9 +168,9 @@ public class LoggingContext
         get => ref _webContext;
     }
 
-    internal void PopulateFrom(HttpContext? httpContext)
-        => PopulateContext(ref _webContext, httpContext);
+    internal void PopulateFrom(HttpContext? httpContext, IExternalScopeProvider? externalScopeProvider)
+        => PopulateContext(ref _webContext, httpContext, externalScopeProvider);
 
-    internal void UpdateFrom(HttpContext? httpContext)
-        => UpdateContext(ref _webContext, httpContext);
+    internal void UpdateFrom(HttpContext? httpContext, IExternalScopeProvider? externalScopeProvider)
+        => UpdateContext(ref _webContext, httpContext, externalScopeProvider);
 }
