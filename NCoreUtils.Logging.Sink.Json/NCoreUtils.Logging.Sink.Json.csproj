@@ -7,7 +7,7 @@
     <ProjectReference Include="..\NCoreUtils.Logging.Sink\NCoreUtils.Logging.Sink.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' != 'net7.0' And '$(TargetFramework)' != 'net8.0' ">
-    <PackageReference Include="System.Text.Json" Version="6.0.9" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' Or '$(TargetFramework)' == 'netstandard2.1' ">
     <Compile Include="..\Shared\Trimming\*.cs" />
