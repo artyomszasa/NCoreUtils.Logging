@@ -1,19 +1,13 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+namespace NCoreUtils.Logging;
 
-namespace NCoreUtils.Logging
+public interface IByteSequenceOutput : IAsyncDisposable, IDisposable
 {
-    public interface IByteSequenceOutput : IAsyncDisposable, IDisposable
-    {
-        Stream GetStream()
+    Stream GetStream()
 #if NETFRAMEWORK
-            ;
+        ;
 #else
-            => new Internal.ByteSequenceOutputStream(this);
+        => new Internal.ByteSequenceOutputStream(this);
 #endif
 
-        ValueTask WriteAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default);
-    }
+    ValueTask WriteAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default);
 }

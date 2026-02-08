@@ -1,13 +1,12 @@
-namespace NCoreUtils.Logging.RollingFile
+namespace NCoreUtils.Logging.RollingFile;
+
+public interface IFileRollerOptions
 {
-    public interface IFileRollerOptions
-    {
-        FileRollTrigger Triggers { get; }
+    FileRollTrigger Triggers { get; }
 
-        long MaxFileSize { get; }
+    long MaxFileSize { get; }
 
-        bool CompressRolled { get; }
+    bool CompressRolled { get; }
 
-        FileNameFormatterDelegate FileNameFormatter { get; }
-    }
+    FileNameFormatterDelegate FileNameFormatter { get; }
 }

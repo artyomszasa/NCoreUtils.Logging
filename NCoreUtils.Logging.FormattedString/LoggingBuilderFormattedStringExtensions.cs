@@ -3,22 +3,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NCoreUtils.Logging.FormattedString;
 
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging;
+
+public static class LoggingBuilderFormattedStringExtensions
 {
-    public static class LoggingBuilderFormattedStringExtensions
+    public static ILoggingBuilder AddFormattedString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(this ILoggingBuilder builder, string nameOrUri)
+        where TLoggerProvider : LoggerProvider
     {
-        public static ILoggingBuilder AddFormattedString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TLoggerProvider>(this ILoggingBuilder builder, string nameOrUri)
-            where TLoggerProvider : LoggerProvider
+        builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
         {
-            builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
-            {
-                var output = serviceProvider.CreateByteSequenceOutput(nameOrUri);
-                var payloadFactory = new FormattedStringPayloadFactory();
-                var payloadWriter = new FormattedStringPayloadWriter(output);
-                var sink = new FormattedStringSink(payloadWriter, payloadFactory);
-                return ActivatorUtilities.CreateInstance<TLoggerProvider>(serviceProvider, sink);
-            });
-            return builder;
-        }
+            var output = serviceProvider.CreateByteSequenceOutput(nameOrUri);
+            var payloadFactory = new FormattedStringPayloadFactory();
+            var payloadWriter = new FormattedStringPayloadWriter(output);
+            var sink = new FormattedStringSink(payloadWriter, payloadFactory);
+            return ActivatorUtilities.CreateInstance<TLoggerProvider>(serviceProvider, sink);
+        });
+        return builder;
     }
 }

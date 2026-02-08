@@ -2,23 +2,16 @@ using Google.Api;
 
 namespace NCoreUtils.Logging.Google.Internal;
 
-public readonly struct GoogleClientLoggingContext
+[Obsolete]
+public readonly struct GoogleClientLoggingContext(string projectId, string? service, string? serviceVersion, MonitoredResource resource)
 {
-    public string ProjectId { get; }
+    public string ProjectId { get; } = projectId;
 
-    public string Service { get; }
+    public string? Service { get; } = service;
 
-    public string? ServiceVersion { get; }
+    public string? ServiceVersion { get; } = serviceVersion;
 
-    public MonitoredResource Resource { get; }
-
-    public GoogleClientLoggingContext(string projectId, string service, string? serviceVersion, MonitoredResource resource)
-    {
-        ProjectId = projectId;
-        Service = service;
-        ServiceVersion = serviceVersion;
-        Resource = resource;
-    }
+    public MonitoredResource Resource { get; } = resource;
 
     public GoogleClientLoggingContext(in GoogleLoggingContext context, MonitoredResource resource)
         : this (context.ProjectId, context.Service, context.ServiceVersion, resource)

@@ -1,9 +1,8 @@
-namespace NCoreUtils.Logging.Google
+namespace NCoreUtils.Logging.Google;
+
+public enum CategoryHandling
 {
-    public enum CategoryHandling
-    {
-        IncludeInMessage = 0,
-        IncludeAsLabel = 1,
-        Ignore = 2
-    }
+    IncludeInMessage = 0,
+    IncludeAsLabel = 1,
+    Ignore = 2
 }

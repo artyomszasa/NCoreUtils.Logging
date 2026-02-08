@@ -4,60 +4,56 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging;
+
+public class DefaultTraceIdProvider(IHttpContextAccessor? httpContextAccessor = default) : ITraceIdProvider
 {
-    public class DefaultTraceIdProvider : ITraceIdProvider
+    private static string NextId() => Guid.NewGuid().ToString("N");
+
+    private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor;
+
+    public bool SuppressOutOfContextWarning { get; set; }
+
+    public string TraceId
     {
-        private static string NextId() => Guid.NewGuid().ToString("N");
-
-        private readonly IHttpContextAccessor? _httpContextAccessor;
-
-        public DefaultTraceIdProvider(IHttpContextAccessor? httpContextAccessor = default)
-            => _httpContextAccessor = httpContextAccessor;
-
-        public bool SuppressOutOfContextWarning { get; set; }
-
-        public string TraceId
+        get
         {
-            get
+            var httpContext = _httpContextAccessor?.HttpContext;
+            if (httpContext is null)
             {
-                var httpContext = _httpContextAccessor?.HttpContext;
-                if (httpContext is null)
+                if (!SuppressOutOfContextWarning)
                 {
-                    if (!SuppressOutOfContextWarning)
-                    {
-                        Console.Error.WriteLine("Default trace id provider is used out-of ASP.NET Core request context.");
-                    }
-                    return NextId();
+                    Console.Error.WriteLine("Default trace id provider is used out-of ASP.NET Core request context.");
                 }
-                if (httpContext.Items.TryGetValue(HttpContextItemIds.TraceId, out var boxedId))
-                {
-                    return boxedId as string ?? NextId();
-                }
-                string traceId;
-                if (Activity.Current?.TraceId is ActivityTraceId activityTraceId && activityTraceId != default)
-                {
-                    traceId = activityTraceId.ToHexString();
-                    httpContext.Items[HttpContextItemIds.TraceId] = traceId;
-                    return traceId;
-                }
-                traceId = httpContext.Request.Headers.TryGetValue("X-Trace-Id", out var values) && values.Count > 0 && IsNotNullOrEmpty(values[0], out var value)
-                    ? value
-                    : NextId();
+                return NextId();
+            }
+            if (httpContext.Items.TryGetValue(HttpContextItemIds.TraceId, out var boxedId))
+            {
+                return boxedId as string ?? NextId();
+            }
+            string traceId;
+            if (Activity.Current?.TraceId is ActivityTraceId activityTraceId && activityTraceId != default)
+            {
+                traceId = activityTraceId.ToHexString();
                 httpContext.Items[HttpContextItemIds.TraceId] = traceId;
                 return traceId;
+            }
+            traceId = httpContext.Request.Headers.TryGetValue("X-Trace-Id", out var values) && values.Count > 0 && IsNotNullOrEmpty(values[0], out var value)
+                ? value
+                : NextId();
+            httpContext.Items[HttpContextItemIds.TraceId] = traceId;
+            return traceId;
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                static bool IsNotNullOrEmpty(string? input, [MaybeNullWhen(false)] out string output)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static bool IsNotNullOrEmpty(string? input, [MaybeNullWhen(false)] out string output)
+            {
+                if (string.IsNullOrEmpty(input))
                 {
-                    if (string.IsNullOrEmpty(input))
-                    {
-                        output = default;
-                        return false;
-                    }
-                    output = input;
-                    return true;
+                    output = default;
+                    return false;
                 }
+                output = input;
+                return true;
             }
         }
     }

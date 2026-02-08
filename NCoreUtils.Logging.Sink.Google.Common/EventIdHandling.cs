@@ -1,9 +1,8 @@
-namespace NCoreUtils.Logging.Google
+namespace NCoreUtils.Logging.Google;
+
+public enum EventIdHandling
 {
-    public enum EventIdHandling
-    {
-        IncludeValidIds = 0,
-        IncludeAlways = 1,
-        Ignore = 2
-    }
+    IncludeValidIds = 0,
+    IncludeAlways = 1,
+    Ignore = 2
 }

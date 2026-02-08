@@ -1,15 +1,10 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using IO = System.IO;
-
 namespace NCoreUtils.Logging.RollingFile;
 
 public class RollingByteSequenceOutput : IByteSequenceOutput
 {
     private sealed class Target(IFormattedPath path) : IAsyncDisposable, IDisposable
     {
-        public IO.Stream Stream { get; } = new IO.FileStream(path.Path, IO.FileMode.Append, IO.FileAccess.Write, IO.FileShare.ReadWrite, 8 * 1024, true);
+        public Stream Stream { get; } = new FileStream(path.Path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 8 * 1024, true);
 
         public IFormattedPath Path { get; } = path;
 
@@ -65,7 +60,7 @@ public class RollingByteSequenceOutput : IByteSequenceOutput
 
 
 #if NETFRAMEWORK
-    IO.Stream IByteSequenceOutput.GetStream()
+    Stream IByteSequenceOutput.GetStream()
             => new Internal.ByteSequenceOutputStream(this);
 #endif
 

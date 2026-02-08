@@ -1,6 +1,6 @@
 namespace NCoreUtils.Logging.Internal;
 
-internal class Scope
+internal class Scope(object? value, Scope? next)
 {
     public static int Count(Scope? scope)
         => scope is null ? 0 : 1 + Count(scope.Next);
@@ -17,13 +17,7 @@ internal class Scope
             ? new Scope(value, default)
             : new Scope(scope.Value, Append(scope.Next, value));
 
-    public object? Value { get; }
+    public object? Value { get; } = value;
 
-    public Scope? Next { get; }
-
-    public Scope(object? value, Scope? next)
-    {
-        Value = value;
-        Next = next;
-    }
+    public Scope? Next { get; } = next;
 }

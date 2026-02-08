@@ -1,16 +1,14 @@
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace NCoreUtils.Logging.Internal;
 
 internal static class ChannelReaderExtensions
 {
-    private sealed class Counter
+    [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private sealed class Counter(int initialValue)
     {
-        private int _value;
+        private int _value = initialValue;
 
         public int Value
         {
@@ -19,14 +17,7 @@ internal static class ChannelReaderExtensions
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Counter(int initialValue)
-            => _value = initialValue;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Increment()
-        {
-            ++_value;
-        }
+        public void Increment() => ++_value;
     }
 
     private static async ValueTask DoReadAllAvailableWithinAsync<T>(

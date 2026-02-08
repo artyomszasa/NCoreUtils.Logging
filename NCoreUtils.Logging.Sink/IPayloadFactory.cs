@@ -1,9 +1,6 @@
-using System;
+namespace NCoreUtils.Logging;
 
-namespace NCoreUtils.Logging
+public interface IPayloadFactory<TPayload> : IDisposable, IAsyncDisposable
 {
-    public interface IPayloadFactory<TPayload> : IDisposable, IAsyncDisposable
-    {
-        TPayload CreatePayload<TState>(LogMessage<TState> message);
-    }
+    TPayload CreatePayload<TState>(LogMessage<TState> message);
 }

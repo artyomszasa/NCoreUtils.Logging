@@ -1,11 +1,6 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+namespace NCoreUtils.Logging;
 
-namespace NCoreUtils.Logging
+public interface IPayloadWriter<TPayload> : IDisposable, IAsyncDisposable
 {
-    public interface IPayloadWriter<TPayload> : IDisposable, IAsyncDisposable
-    {
-        ValueTask WritePayloadAsync(TPayload payload, CancellationToken cancellationToken = default);
-    }
+    ValueTask WritePayloadAsync(TPayload payload, CancellationToken cancellationToken = default);
 }

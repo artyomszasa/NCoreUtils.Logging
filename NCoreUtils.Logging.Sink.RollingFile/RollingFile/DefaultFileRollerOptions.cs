@@ -1,23 +1,20 @@
-using System;
+namespace NCoreUtils.Logging.RollingFile;
 
-namespace NCoreUtils.Logging.RollingFile
+public class DefaultFileRollerOptions : IFileRollerOptions
 {
-    public class DefaultFileRollerOptions : IFileRollerOptions
-    {
-        public FileRollTrigger Triggers { get; set; } = FileRollTrigger.Date;
+    public FileRollTrigger Triggers { get; set; } = FileRollTrigger.Date;
 
-        public long MaxFileSize { get; set; } = 0;
+    public long MaxFileSize { get; set; } = 0;
 
-        public bool CompressRolled { get; set; } = true;
+    public bool CompressRolled { get; set; } = true;
 
-        public FileNameFormatterDelegate FileNameFormatter { get; set; }
-            = (in FileNameDecomposition fileName, DateOnly timestamp, int suffix)
-                => new DefaultFormattedPath(
-                    "{0}.{2:yyyy-MM-dd}{1}",
-                    "{0}.{2:yyyy-MM-dd}{1}.{3}",
-                    in fileName,
-                    timestamp,
-                    suffix
-                );
-    }
+    public FileNameFormatterDelegate FileNameFormatter { get; set; }
+        = (in fileName, timestamp, suffix)
+            => new DefaultFormattedPath(
+                "{0}.{2:yyyy-MM-dd}{1}",
+                "{0}.{2:yyyy-MM-dd}{1}.{3}",
+                in fileName,
+                timestamp,
+                suffix
+            );
 }

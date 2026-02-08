@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace NCoreUtils.Logging.Google.Data;
 
 public static class Pool

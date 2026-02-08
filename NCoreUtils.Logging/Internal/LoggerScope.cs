@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace NCoreUtils.Logging.Internal;
 
 internal class LoggerScope(Logger logger, int index) : IDisposable

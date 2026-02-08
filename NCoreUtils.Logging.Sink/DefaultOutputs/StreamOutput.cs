@@ -1,22 +1,10 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace NCoreUtils.Logging.DefaultOutputs;
 
 public abstract class StreamOutput : IByteSequenceOutput
 {
     private Stream? _stream;
 
-    protected Stream Stream
-    {
-        get
-        {
-            _stream ??= InitializeStream();
-            return _stream;
-        }
-    }
+    protected Stream Stream => _stream ??= InitializeStream();
 
     protected abstract Stream InitializeStream();
 
@@ -27,19 +15,6 @@ public abstract class StreamOutput : IByteSequenceOutput
         => Stream.WriteAsync(data, cancellationToken);
 
     #region disposable
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await DisposeAsyncCore().ConfigureAwait(false);
-        Dispose(disposing: false);
-        GC.SuppressFinalize(this);
-    }
 
     protected virtual void Dispose(bool disposing)
     {
@@ -56,6 +31,19 @@ public abstract class StreamOutput : IByteSequenceOutput
             return _stream.DisposeAsync();
         }
         return default;
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        await DisposeAsyncCore();
+        Dispose(disposing: false);
     }
 
     #endregion

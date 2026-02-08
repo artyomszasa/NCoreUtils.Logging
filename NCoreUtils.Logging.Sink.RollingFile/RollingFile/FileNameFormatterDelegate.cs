@@ -1,6 +1,3 @@
-using System;
+namespace NCoreUtils.Logging.RollingFile;
 
-namespace NCoreUtils.Logging.RollingFile
-{
-    public delegate IFormattedPath FileNameFormatterDelegate(in FileNameDecomposition path, DateOnly date, int suffix);
-}
+public delegate IFormattedPath FileNameFormatterDelegate(in FileNameDecomposition path, DateOnly date, int suffix);

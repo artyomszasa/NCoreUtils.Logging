@@ -1,9 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging;
+
+public interface IByteSequenceOutputFactory
 {
-    public interface IByteSequenceOutputFactory
-    {
-        bool TryCreate(string uriOrName, [MaybeNullWhen(false)] out IByteSequenceOutput output);
-    }
+    bool TryCreate(string uriOrName, [MaybeNullWhen(false)] out IByteSequenceOutput output);
 }

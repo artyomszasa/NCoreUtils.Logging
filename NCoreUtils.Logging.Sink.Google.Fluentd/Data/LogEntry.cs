@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace NCoreUtils.Logging.Google.Data;
 
 [method: JsonConstructor]
 public sealed class LogEntry(
-    string logName,
+    string? logName,
     LogSeverity severity,
     string message,
     DateTimeOffset timestamp,
@@ -14,12 +12,14 @@ public sealed class LogEntry(
     ErrorContext? context,
     HttpRequest? httpRequest,
     string? trace,
-    IReadOnlyDictionary<string, string>? labels) : IDisposable
+    IReadOnlyDictionary<string, string>? labels)
+    : IDisposable
 {
     private static readonly IReadOnlyDictionary<string, string> _noLabels = new Dictionary<string, string>();
 
     [JsonPropertyName("logName")]
-    public string LogName { get; private set; } = logName;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string? LogName { get; private set; } = logName;
 
     [JsonConverter(typeof(SeverityConverter))]
     [JsonPropertyName("severity")]
@@ -41,16 +41,18 @@ public sealed class LogEntry(
     public ErrorContext? Context { get; private set; } = context;
 
     [JsonPropertyName("httpRequest")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public HttpRequest? HttpRequest { get; private set; } = httpRequest;
 
     [JsonPropertyName("logging.googleapis.com/trace")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? Trace { get; private set; } = trace;
 
     [JsonPropertyName("logging.googleapis.com/labels")]
     public IReadOnlyDictionary<string, string> Labels { get; private set; } = labels ?? _noLabels;
 
     public LogEntry Update(
-        string logName,
+        string? logName,
         LogSeverity severity,
         string message,
         DateTimeOffset timestamp,

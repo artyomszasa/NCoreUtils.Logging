@@ -1,10 +1,6 @@
-using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace NCoreUtils.Logging;
 
@@ -63,9 +59,9 @@ public class GenericSinkQueue<TPayload>(GenericBulkSink<TPayload> sink) : ISinkQ
 
     public async ValueTask DisposeAsync()
     {
+        GC.SuppressFinalize(this);
         await DisposeAsyncCore();
         Dispose(disposing: false);
-        GC.SuppressFinalize(this);
     }
 
     #endregion

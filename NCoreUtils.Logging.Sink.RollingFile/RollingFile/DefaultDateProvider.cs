@@ -1,5 +1,3 @@
-using System;
-
 namespace NCoreUtils.Logging.RollingFile;
 
 public sealed class DefaultDateProvider : IDateProvider

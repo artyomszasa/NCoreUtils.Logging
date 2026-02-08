@@ -1,15 +1,12 @@
-using System;
+namespace NCoreUtils.Logging.RollingFile;
 
-namespace NCoreUtils.Logging.RollingFile
+public interface IFormattedPath
 {
-    public interface IFormattedPath
-    {
-        string Path { get; }
+    string Path { get; }
 
-        DateOnly? Timestamp { get; }
+    DateOnly? Timestamp { get; }
 
-        int Suffix { get; }
+    int Suffix { get; }
 
-        IFormattedPath WithSuffix(int suffix);
-    }
+    IFormattedPath WithSuffix(int suffix);
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -7,9 +6,9 @@ namespace NCoreUtils.Logging.Google.Data;
 
 public class TimestampConverter : JsonConverter<DateTimeOffset>
 {
-    private static readonly byte[] binSeconds = "seconds"u8.ToArray();
+    private static ReadOnlySpan<byte> BinSeconds => "seconds"u8;
 
-    private static readonly byte[] binNanos = "nanos"u8.ToArray();
+    private static ReadOnlySpan<byte> BinNanos => "nanos"u8;
 
     private static readonly JsonEncodedText jsonSeconds = JsonEncodedText.Encode("seconds");
 
@@ -45,7 +44,7 @@ public class TimestampConverter : JsonConverter<DateTimeOffset>
             {
                 throw new JsonException($"Expected {JsonTokenType.PropertyName} found {reader.TokenType} while deserializing Timestamp.");
             }
-            if (reader.ValueTextEquals(binSeconds))
+            if (reader.ValueTextEquals(BinSeconds))
             {
                 if (!reader.Read())
                 {
@@ -53,7 +52,7 @@ public class TimestampConverter : JsonConverter<DateTimeOffset>
                 }
                 seconds = reader.GetInt64();
             }
-            else if (reader.ValueTextEquals(binNanos))
+            else if (reader.ValueTextEquals(BinNanos))
             {
                 if (!reader.Read())
                 {

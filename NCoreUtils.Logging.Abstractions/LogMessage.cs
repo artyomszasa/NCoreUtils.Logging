@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace NCoreUtils.Logging;
@@ -61,7 +58,7 @@ public class LogMessage<TState>(
         TState state,
         Func<TState, Exception?, string> formatter)
     {
-        base.Update(category, logLevel, eventId, exception);
+        Update(category, logLevel, eventId, exception);
         State = state;
         Formatter = formatter;
         return this;

@@ -1,14 +1,9 @@
-using System;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
-using Google.Api;
 using Google.Cloud.Logging.V2;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NCoreUtils.Logging.Google;
 using Xunit;
 
 namespace NCoreUtils.Logging.Unit
@@ -56,7 +51,7 @@ namespace NCoreUtils.Logging.Unit
             );
             if (prePopulateContext)
             {
-                context.Scope.ServiceProvider.GetRequiredService<LoggingContext>().PopulateFrom(context.HttpContext);
+                context.Scope.ServiceProvider.GetRequiredService<LoggingContext>().PopulateFrom(context.HttpContext, default);
             }
             {
                 var provider = context.Scope.ServiceProvider.GetRequiredService<ILoggerProvider>();

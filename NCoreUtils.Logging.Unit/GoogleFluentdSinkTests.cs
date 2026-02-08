@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,8 +85,8 @@ public class GoogleFluentdSinkTests
             var json = Encoding.ASCII.GetBytes(@"{
                 ""Output"": ""tcp://127.0.0.1:%PORT%"",
                 ""ProjectId"": ""test"",
-                ""Service"": ""test"",
-                ""ServiceVersion"": ""3.1.0"",
+                // ""Service"": ""test"",
+                // ""ServiceVersion"": ""3.1.0"",
                 ""CategoryHandling"": ""IncludeAsLabel"",
                 ""EventIdHandling"": ""IncludeValidIds"",
                 ""TraceHandling"": ""Enabled""
@@ -123,7 +117,7 @@ public class GoogleFluentdSinkTests
             );
             if (prePopulateContext)
             {
-                context.Scope.ServiceProvider.GetRequiredService<LoggingContext>().PopulateFrom(context.HttpContext);
+                context.Scope.ServiceProvider.GetRequiredService<LoggingContext>().PopulateFrom(context.HttpContext, default);
             }
             var provider = context.Scope.ServiceProvider.GetRequiredService<ILoggerProvider>();
             var logger = provider.CreateLogger("category");

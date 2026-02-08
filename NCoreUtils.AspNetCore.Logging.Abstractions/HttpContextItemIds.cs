@@ -1,7 +1,6 @@
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging;
+
+public static class HttpContextItemIds
 {
-    public static class HttpContextItemIds
-    {
-        public const string TraceId = "NCoreUtils.AspNetCore.Logging-TraceId";
-    }
+    public const string TraceId = "NCoreUtils.AspNetCore.Logging-TraceId";
 }

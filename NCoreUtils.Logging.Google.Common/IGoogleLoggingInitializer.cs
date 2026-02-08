@@ -1,12 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using Google.Api;
-using Google.Api.Gax.STJ;
-
 namespace NCoreUtils.Logging.Google.Internal;
 
+public interface IGoogleLoggingInitializer
+{
+    GoogleLoggingContext InitializeGoogleLoggingContext(
+        string? inputProjectId,
+        string? inputService,
+        string? inputServiceVersion,
+        // string? inputResourceType,
+        // IReadOnlyDictionary<string, string>? inputResourceLabels,
+        bool preferConfig = false
+    );
+}
+
+/*
 public static class GoogleLoggingInitialization
 {
     [return: NotNullIfNotNull(nameof(b))]
@@ -103,3 +109,4 @@ public static class GoogleLoggingInitialization
         return InitializeGoogleLoggingContext(p, inputProjectId, inputService, inputServiceVersion, preferConfig);
     }
 }
+*/

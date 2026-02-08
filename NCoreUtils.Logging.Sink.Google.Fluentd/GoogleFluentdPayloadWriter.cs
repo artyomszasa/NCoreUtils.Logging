@@ -1,24 +1,16 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using NCoreUtils.Logging.ByteSequences;
 using NCoreUtils.Logging.Google.Data;
 
 namespace NCoreUtils.Logging.Google;
 
-public class GoogleFluentdPayloadWriter : IPayloadAsByteSequenceWriter<LogEntry>
+public class GoogleFluentdPayloadWriter(IGoogleFluentdSinkConfiguration configuration, IByteSequenceOutput output)
+    : IPayloadAsByteSequenceWriter<LogEntry>
 {
     private int _isDisposed;
 
-    protected IGoogleFluentdSinkConfiguration Configuration { get; }
+    protected IGoogleFluentdSinkConfiguration Configuration { get; } = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
-    public IByteSequenceOutput Output { get; }
-
-    public GoogleFluentdPayloadWriter(IGoogleFluentdSinkConfiguration configuration, IByteSequenceOutput output)
-    {
-        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-        Output = output ?? throw new ArgumentNullException(nameof(output));
-    }
+    public IByteSequenceOutput Output { get; } = output ?? throw new ArgumentNullException(nameof(output));
 
     public ValueTask<IByteSequence> CreateByteSequenceAsync(LogEntry payload, CancellationToken cancellationToken = default)
     {
@@ -60,9 +52,9 @@ public class GoogleFluentdPayloadWriter : IPayloadAsByteSequenceWriter<LogEntry>
 
     public async ValueTask DisposeAsync()
     {
+        GC.SuppressFinalize(this);
         await DisposeAsyncCore();
         Dispose(disposing: false);
-        GC.SuppressFinalize(this);
     }
 
     #endregion

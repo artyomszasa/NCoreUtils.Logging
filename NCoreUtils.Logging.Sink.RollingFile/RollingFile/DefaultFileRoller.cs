@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using IO = System.IO;
 
 namespace NCoreUtils.Logging.RollingFile;
@@ -16,22 +13,22 @@ public class DefaultFileRoller : IFileRoller
         IO.Compression.CompressionLevel.SmallestSize;
 #endif
 
-    private static IO.FileStream OpenRead(string path)
+    private static FileStream OpenRead(string path)
         => new(
             path,
-            IO.FileMode.Open,
-            IO.FileAccess.Read,
-            IO.FileShare.None,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.None,
             BufferSize,
-            IO.FileOptions.SequentialScan | IO.FileOptions.Asynchronous
+            FileOptions.SequentialScan | FileOptions.Asynchronous
         );
 
     private static IO.FileStream OpenWrite(string path)
         => new(
             path,
-            IO.FileMode.CreateNew,
-            IO.FileAccess.Write,
-            IO.FileShare.None,
+            FileMode.CreateNew,
+            FileAccess.Write,
+            FileShare.None,
             BufferSize,
             true
         );
@@ -66,10 +63,10 @@ public class DefaultFileRoller : IFileRoller
     private async ValueTask DoRollAsync(IFormattedPath path, CancellationToken cancellationToken)
     {
         (IFormattedPath FormattedPath, bool Compressed, string Path) pathToRoll;
-        if (!IO.File.Exists(path.Path))
+        if (!File.Exists(path.Path))
         {
             var compressedPath = path.Path + ".gz";
-            if (!IO.File.Exists(compressedPath))
+            if (!File.Exists(compressedPath))
             {
                 return;
             }
@@ -104,7 +101,7 @@ public class DefaultFileRoller : IFileRoller
                     using var targetStream = OpenWrite(target);
                     await sourceStream.CopyToAsync(targetStream, BufferSize, cancellationToken);
                 }
-                IO.File.Delete(pathToRoll.Path);
+                File.Delete(pathToRoll.Path);
             }
             catch (Exception exn)
             {
@@ -121,7 +118,7 @@ public class DefaultFileRoller : IFileRoller
                 {
                     var targetPath = pathToRoll.Path + ".gz";
                     await CompressAsync(pathToRoll.Path, targetPath, CancellationToken.None).ConfigureAwait(false);
-                    IO.File.Delete(pathToRoll.Path);
+                    File.Delete(pathToRoll.Path);
                 }
                 catch (Exception exn)
                 {
@@ -160,7 +157,7 @@ public class DefaultFileRoller : IFileRoller
         }
         // initializing
         var candidate = Options.FileNameFormatter(basePath, DateProvider.CurrentDate, 0);
-        var finfo = new IO.FileInfo(candidate.Path);
+        var finfo = new FileInfo(candidate.Path);
         if (finfo.Exists && Options.Triggers.HasFlag(FileRollTrigger.Size) && Options.MaxFileSize > 0 && finfo.Length < Options.MaxFileSize)
         {
             // if file exists and size restrictions are provided and size restrictions are not met --> roll file

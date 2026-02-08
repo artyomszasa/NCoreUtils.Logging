@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.Logging;
 
 namespace NCoreUtils.Logging;
@@ -44,7 +43,7 @@ public class WebLogMessage : LogMessage<string>
         : base(category, logLevel, eventId, exception, state, formatter)
     {
 #if DEBUG
-        System.Threading.Interlocked.Increment(ref _cc);
+        Interlocked.Increment(ref _cc);
 #endif
         _context = context;
         IsRequestSummary = isRequestSummary;
@@ -61,7 +60,7 @@ public class WebLogMessage : LogMessage<string>
         bool isRequestSummary)
     {
 #if DEBUG
-        System.Threading.Interlocked.Increment(ref _up);
+        Interlocked.Increment(ref _up);
 #endif
         // NOTE: base call
         Update(category, logLevel, eventId, exception, state, formatter);
@@ -73,7 +72,7 @@ public class WebLogMessage : LogMessage<string>
     protected override void Dispose(bool disposing)
     {
 #if DEBUG
-        System.Threading.Interlocked.Decrement(ref _up);
+        Interlocked.Decrement(ref _up);
 #endif
         Pool.Return(this);
     }

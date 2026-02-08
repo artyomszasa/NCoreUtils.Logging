@@ -1,7 +1,6 @@
-namespace NCoreUtils.Logging
+namespace NCoreUtils.Logging;
+
+public interface ITraceIdProvider
 {
-    public interface ITraceIdProvider
-    {
-        string TraceId { get; }
-    }
+    string TraceId { get; }
 }

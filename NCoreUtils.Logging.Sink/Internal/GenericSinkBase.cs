@@ -1,7 +1,4 @@
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace NCoreUtils.Logging.Internal;
 
@@ -40,8 +37,8 @@ public abstract class GenericSinkBase<TPayload, TWriter>(TWriter payloadWriter, 
     {
         if (0 == Interlocked.CompareExchange(ref _isDisposed, 1, 0))
         {
-            await PayloadWriter.DisposeAsync().ConfigureAwait(false);
-            await PayloadFactory.DisposeAsync().ConfigureAwait(false);
+            await PayloadWriter.DisposeAsync();
+            await PayloadFactory.DisposeAsync();
         }
     }
 
@@ -54,9 +51,9 @@ public abstract class GenericSinkBase<TPayload, TWriter>(TWriter payloadWriter, 
 
     public async ValueTask DisposeAsync()
     {
+        GC.SuppressFinalize(this);
         await DisposeAsyncCore();
         Dispose(disposing: false);
-        GC.SuppressFinalize(this);
     }
 
     #endregion

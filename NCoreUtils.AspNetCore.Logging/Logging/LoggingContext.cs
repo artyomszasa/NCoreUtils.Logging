@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
@@ -39,8 +37,8 @@ public class LoggingContext
     {
         true => host.Port!.Value switch
         {
-            443 when (isHttps) => -1,
-            80 when (!isHttps) => -1,
+            443 when isHttps => -1,
+            80 when !isHttps => -1,
             int port => port
         },
         _ => -1

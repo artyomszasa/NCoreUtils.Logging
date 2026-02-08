@@ -1,17 +1,16 @@
 namespace NCoreUtils.Logging.Google.Internal;
 
-public readonly struct GoogleLoggingContext
+public readonly struct GoogleLoggingContext(
+    string projectId,
+    string? service,
+    string? serviceVersion,
+    object? details = default)
 {
-    public string ProjectId { get; }
+    public string ProjectId { get; } = projectId;
 
-    public string Service { get; }
+    public string? Service { get; } = service;
 
-    public string? ServiceVersion { get; }
+    public string? ServiceVersion { get; } = serviceVersion;
 
-    public GoogleLoggingContext(string projectId, string service, string? serviceVersion)
-    {
-        ProjectId = projectId;
-        Service = service;
-        ServiceVersion = serviceVersion;
-    }
+    public object? Details { get; } = details;
 }

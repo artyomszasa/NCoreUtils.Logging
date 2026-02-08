@@ -1,11 +1,8 @@
-using System;
+namespace NCoreUtils.Logging.RollingFile;
 
-namespace NCoreUtils.Logging.RollingFile
+[Flags]
+public enum FileRollTrigger
 {
-    [Flags]
-    public enum FileRollTrigger
-    {
-        Size = 0x01,
-        Date = 0x02
-    }
+    Size = 0x01,
+    Date = 0x02
 }

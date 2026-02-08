@@ -1,9 +1,8 @@
 using Google.Api;
 
-namespace NCoreUtils.Logging.Google
+namespace NCoreUtils.Logging.Google;
+
+public interface IGoogleClientSinkConfiguration : IGoogleSinkConfiguration
 {
-    public interface IGoogleClientSinkConfiguration : IGoogleSinkConfiguration
-    {
-        MonitoredResource Resource { get; }
-    }
+    MonitoredResource Resource { get; }
 }
