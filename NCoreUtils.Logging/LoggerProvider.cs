@@ -4,6 +4,13 @@ namespace NCoreUtils.Logging;
 
 public partial class LoggerProvider(ISink sink) : ILoggerProvider, IDisposable, IAsyncDisposable
 {
+    private static readonly bool PrintDebug = Environment.GetEnvironmentVariable("NCOREUTILS_LOGGING_DEBUG") switch
+    {
+        null => false,
+        "1" or "on" or "true" or "True" => true,
+        _ => false
+    };
+
     private readonly object _sync = new();
 
     private readonly CancellationTokenSource _cancellation = new();
@@ -123,15 +130,21 @@ public partial class LoggerProvider(ISink sink) : ILoggerProvider, IDisposable, 
                     }
                 }
             }
-            Console.WriteLine("Logger worker has been completed normally.");
+            if (PrintDebug)
+            {
+                Console.WriteLine("Logger worker has been completed normally.");
+            }
         }
         catch (OperationCanceledException)
         {
-            Console.WriteLine("Logger worker has been cancelled.");
+            if (PrintDebug)
+            {
+                Console.WriteLine("Logger worker has been cancelled.");
+            }
         }
         catch (Exception exn)
         {
-            Console.WriteLine($"Logger worker has exited due to exception: {exn}");
+            Console.Error.WriteLine($"Logger worker has exited due to exception: {exn}");
             throw;
         }
     }

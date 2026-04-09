@@ -3,7 +3,7 @@
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>10.0.0-rc00</Version>
+    <Version>10.0.0-rc01</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Artyom Antyipin</Authors>
     <Copyright>Artyom Antyipin</Copyright>
